@@ -2,6 +2,6 @@
 
 I'm Nima Moazzen and This is my final project for C programming in Sharif University of Technology.
 
-In this project I'm 
+In this project I'm going to program something like Vim.
 
 Good luck.
