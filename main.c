@@ -1,6 +1,8 @@
 //Nima Moazzen
 //401106599
 
+//incomplete createfile and cat
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
