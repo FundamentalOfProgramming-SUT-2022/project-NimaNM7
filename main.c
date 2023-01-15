@@ -1,7 +1,7 @@
 //Nima Moazzen
 //401106599
 
-//incomplete createfile and cat
+//version 2 - createfile and cat - needs a lot of debugging
 
 #include <stdio.h>
 #include <string.h>
@@ -9,56 +9,88 @@
 #include <sys/stat.h>
 #include <dirent.h>
 
-void createfile(char* commands[]);
-void cat(char* commands[]);
+void createfile();
+void cat();
 
 int main()
 {
+    char firstcommand[30] , secondcommand[30];
+    int invalid = 1;
     while(1)
     {
-        char* command = (char*) calloc(2000 , sizeof(char));
-        gets(command);
+        scanf("%s",firstcommand);
 
-        char *delim = strtok(command, " ");
-
-        char* commandseperated[10]; //saving commands in an array
-        int length = 0;
-        for (int i = 0; delim != NULL ; i++)
+        if (strcmp(firstcommand , "exit") == 0)
         {
-            commandseperated[i] = delim;
-            delim = strtok(NULL," ");
-            length++;
-        }
-
-        if(strcmp(commandseperated[0] , "exit") == 0)
-        {
+            invalid = 0;
             break;
         }
 
-        if (strcmp(commandseperated[0],"createfile") == 0 && strcmp(commandseperated[1],"--file") == 0)
+    //CreateFile
+        if(strcmp(firstcommand , "createfile") == 0)
         {
-            createfile(commandseperated);
+            getchar();
+            scanf("%s",secondcommand);
+            if(strcmp(secondcommand , "--file") == 0)
+            {
+                invalid = 0;
+                createfile();
+            }
         }
 
-        if (strcmp(commandseperated[0],"cat") == 0 && strcmp(commandseperated[1],"--file") == 0)
+    //Cat
+        if(strcmp(firstcommand , "cat") == 0)
         {
-            cat(commandseperated);
-        } 
-
-        else
-        {
-            printf("Invalid command\n");
+            getchar();
+            scanf("%s",secondcommand);
+            if(strcmp(secondcommand , "--file") == 0)
+            {
+                invalid = 0;
+                cat();
+            }
+            else
+            {
+                printf("invalid command\n");
+                continue;
+            }
         }
+
+        else if(invalid)
+        {
+            printf("invalid command\n");
+            invalid = 0;
+            continue;
+        }
+        invalid = 1;
     }
 }
 
-
-void createfile(char* commands[])
+void createfile()
 {
-    char* mydir[10]; //saving the directory in an array
-    char* mydelim = strtok(commands[2],"/");
+    getchar();
+    int flag = 1 , index = 0;
+    char dir[100];
+    
     int mylength = 0;
-    FILE* file;
+    while (flag == 1)
+    {
+        char x;
+        scanf("%c",&x);
+        if(x != '"' && x != '\n')
+        {
+            dir[index] = x;
+            index++;
+        }
+        if(x == '\n')
+        {
+            flag = 0;
+        }
+    }
+
+    // printf("%s",dir);
+
+    char* mydir[10];
+    char* mydelim = strtok(dir,"/");
 
     for (int i = 0; mydelim != NULL; i++)
     {
@@ -67,6 +99,14 @@ void createfile(char* commands[])
         mylength++;
     }
 
+    // printf("%s",mydir[1]);
+
+    // for(int i = 0 ; i < mylength ; i++)
+    // {
+    //     // printf("k");
+    //     printf("%s\n",mydir[i]);
+    // }
+    printf("mydir 0 is %s\n",mydir[0]);
     chdir(mydir[0]);
 
     for (int i = 1; i < mylength - 1; i++)
@@ -83,33 +123,56 @@ void createfile(char* commands[])
         }
     }
 
-    int check = 1;
+    // int check = 1;
 
-    file = fopen(mydir[mylength-1],"r");
+    FILE* file;
+
+    file = fopen(mydir[mylength-1] , "r");
 
     if (file == NULL)
     {
+        // printf("%s\n",mydir[mylength-1]);
         file = fopen(mydir[mylength-1],"w");
+        file = fopen(mydir[mylength-1],"r");
+        if(file != NULL)
+        printf("The file is successfully created!\n");
+        // check = 0;
     }
-    else
+    else 
     {
-        printf("A file with this name already exits!");
-        check = 0;
+        printf("A file with this name already exits!\n");
     }
 
-    if(check)
-        printf("The file is successfully created!\n");
-    
     fclose(file);
+    // chdir(mydir[0]);
 }
 
-void cat(char* commands[])
+void cat()
 {
+    getchar();
+    int flag = 1 , index = 0;
+    char dir[100];
     char* mydir[10]; //saving the directory in an array
-    char* mydelim = strtok(commands[2],"/");
+    
+    FILE* file;
+    while (flag == 1)
+    {
+        char x;
+        scanf("%c",&x);
+        if(x != '"' && x != '\n')
+        {
+            dir[index] = x;
+            index++;
+        }
+        if(x == '\n')
+        {
+            flag = 0;
+        }
+    }
+
+    char* mydelim = strtok(dir,"/");
     int mylength = 0;
     char c;
-    FILE* file;
 
     for (int i = 0; mydelim != NULL; i++)
     {
@@ -138,7 +201,7 @@ void cat(char* commands[])
 
     if(file == NULL)
     {
-        printf("There is no file with this name\n");
+        printf("There is no file with this name");
     }
 
     c = fgetc(file);
@@ -150,6 +213,7 @@ void cat(char* commands[])
     }
 
     fclose(file);
+    // chdir(mydir[0]);
 
     printf("\n");
 }
