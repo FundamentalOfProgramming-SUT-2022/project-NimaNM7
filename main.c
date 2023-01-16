@@ -9,6 +9,9 @@
 #include <sys/stat.h>
 #include <dirent.h>
 
+int mylength;
+
+void getdirectory(char** , char*);
 void createfile();
 void cat();
 
@@ -65,20 +68,18 @@ int main()
     }
 }
 
-void createfile()
+void getdirectory(char** step2 , char* step1)
 {
-    getchar();
     int flag = 1 , index = 0;
-    char dir[100];
     
-    int mylength = 0;
+    mylength = 0;
     while (flag == 1)
     {
         char x;
         scanf("%c",&x);
         if(x != '"' && x != '\n')
         {
-            dir[index] = x;
+            *(step1+index) = x;
             index++;
         }
         if(x == '\n')
@@ -87,26 +88,24 @@ void createfile()
         }
     }
 
-    // printf("%s",dir);
-
-    char* mydir[10];
-    char* mydelim = strtok(dir,"/");
+    char* mydelim = strtok(step1,"/");
 
     for (int i = 0; mydelim != NULL; i++)
     {
-        mydir[i] = mydelim;
+        step2[i] = mydelim;
         mydelim = strtok(NULL,"/");
         mylength++;
     }
+}
 
-    // printf("%s",mydir[1]);
-
-    // for(int i = 0 ; i < mylength ; i++)
-    // {
-    //     // printf("k");
-    //     printf("%s\n",mydir[i]);
-    // }
-    printf("mydir 0 is %s\n",mydir[0]);
+void createfile()
+{
+    getchar();
+    char dir[100];
+    char* mydir[10];
+    
+    getdirectory(mydir,dir);
+    
     chdir(mydir[0]);
 
     for (int i = 1; i < mylength - 1; i++)
@@ -122,8 +121,6 @@ void createfile()
             chdir(mydir[i]);
         }
     }
-
-    // int check = 1;
 
     FILE* file;
 
@@ -136,7 +133,6 @@ void createfile()
         file = fopen(mydir[mylength-1],"r");
         if(file != NULL)
         printf("The file is successfully created!\n");
-        // check = 0;
     }
     else 
     {
@@ -144,42 +140,17 @@ void createfile()
     }
 
     fclose(file);
-    // chdir(mydir[0]);
+    mylength = 0;
 }
 
 void cat()
 {
     getchar();
-    int flag = 1 , index = 0;
     char dir[100];
-    char* mydir[10]; //saving the directory in an array
-    
-    FILE* file;
-    while (flag == 1)
-    {
-        char x;
-        scanf("%c",&x);
-        if(x != '"' && x != '\n')
-        {
-            dir[index] = x;
-            index++;
-        }
-        if(x == '\n')
-        {
-            flag = 0;
-        }
-    }
-
-    char* mydelim = strtok(dir,"/");
-    int mylength = 0;
+    char* mydir[10];
     char c;
 
-    for (int i = 0; mydelim != NULL; i++)
-    {
-        mydir[i] = mydelim;
-        mydelim = strtok(NULL,"/");
-        mylength++;
-    }
+    getdirectory(mydir,dir);
 
     chdir(mydir[0]);
 
@@ -197,6 +168,7 @@ void cat()
         }
     }
 
+    FILE* file;
     file = fopen(mydir[mylength-1],"r");
 
     if(file == NULL)
@@ -215,5 +187,6 @@ void cat()
     fclose(file);
     // chdir(mydir[0]);
 
+    mylength = 0;
     printf("\n");
 }
