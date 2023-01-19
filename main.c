@@ -12,6 +12,7 @@
 int mylength;
 
 void getdirectory(char** , char*);
+void back();
 void createfile();
 void cat();
 
@@ -98,6 +99,15 @@ void getdirectory(char** step2 , char* step1)
     }
 }
 
+void back()
+{
+    for(int i = 1 ; i < mylength ; i++)
+    {
+        chdir("..");
+    }
+    mylength = 0;
+}
+
 void createfile()
 {
     getchar();
@@ -132,7 +142,7 @@ void createfile()
         file = fopen(mydir[mylength-1],"w");
         file = fopen(mydir[mylength-1],"r");
         if(file != NULL)
-        printf("The file is successfully created!\n");
+            printf("The file is successfully created!\n");
     }
     else 
     {
@@ -140,7 +150,7 @@ void createfile()
     }
 
     fclose(file);
-    mylength = 0;
+    back();
 }
 
 void cat()
@@ -185,8 +195,7 @@ void cat()
     }
 
     fclose(file);
-    // chdir(mydir[0]);
 
-    mylength = 0;
+    back();
     printf("\n");
 }
