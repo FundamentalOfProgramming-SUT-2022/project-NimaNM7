@@ -1,7 +1,7 @@
 //Nima Moazzen
 //401106599
 
-// Insert added - Not complete yet
+// Insert added - needs debug
 
 #include <stdio.h>
 #include <string.h>
@@ -275,10 +275,9 @@ void insertfile()
             while(flag == 1)
             {
                 scanf("%c",&mystr[i]);
-                // printf("\t%c\n",mystr[i]);
-                if(mystr[i] == '"')
+                if(mystr[i] == '-' && mystr[i-1] == ' ' && mystr[i-2] == '"')
                 {
-                    mystr[i] = '\0';
+                    mystr[i-2] = '\0';
                     flag = 0;
                 }
                 i++;
@@ -287,13 +286,11 @@ void insertfile()
 
         printf("first check mystr is %s\n",mystr);
 
-        getchar();
-
         char fourthcommand[30];
 
         scanf("%s",fourthcommand);
 
-        if(strcmp(fourthcommand , "--pos") == 0)
+        if(strcmp(fourthcommand , "-pos") == 0)
         {
             scanf("%d:%d",&row,&column);
         }
