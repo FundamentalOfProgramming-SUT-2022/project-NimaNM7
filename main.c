@@ -1,22 +1,24 @@
 //Nima Moazzen
 //401106599
 
-// Insert added - needs debug
-
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <dirent.h>
 
-int mylength;
+int mylength , row , column , size;
 
 void getdirectory(char** , char*);
+void gotodir(char**);
 void back();
 void copyfile(FILE* , FILE*);
+void getcommands2(char*, char*, char*);
 void createfile();
 void cat();
 void insertfile();
+void removestr();
+
 
 int main()
 {
@@ -62,7 +64,7 @@ int main()
         }
 
     //Insert
-        if(strcmp(firstcommand , "insertfile") == 0)
+        if(strcmp(firstcommand , "insertstr") == 0)
         {
             getchar();
             scanf("%s",secondcommand);
@@ -70,6 +72,23 @@ int main()
             {
                 invalid = 0;
                 insertfile();
+            }
+            else
+            {
+                printf("invalid command1\n");
+                continue;
+            }
+        }
+
+    //Remove    
+        if(strcmp(firstcommand , "removestr") == 0)
+        {
+            getchar();
+            scanf("%s",secondcommand);
+            if(strcmp(secondcommand , "--file") == 0)
+            {
+                invalid = 0;
+                removestr();
             }
             else
             {
@@ -124,6 +143,24 @@ void getdirectory(char** step2 , char* step1)
     }
 }
 
+void gotodir(char** mydir)
+{
+    chdir(mydir[0]);
+
+    for(int i = 1 ; i < mylength - 1 ; i++)
+    {
+        if(chdir(mydir[i]) == 0)
+        {
+            continue;
+        }
+        else if(chdir(mydir[i]) == -1)
+        {
+            printf("there is no directory named %s\n",mydir[i]);
+            return;
+        }
+    }
+}
+
 void back()
 {
     for(int i = 1 ; i < mylength ; i++)
@@ -142,6 +179,35 @@ void copyfile(FILE* file1 , FILE* file2)
     {
         fputc(c,file2);
         c = fgetc(file1);
+    }
+    fclose(file1);
+    fclose(file2);
+}
+
+void getcommands2(char* thirdcommand , char* fourthcommand , char* flag)
+{
+    scanf("%s",thirdcommand);
+    if(strcmp(thirdcommand,"-pos") == 0)
+    {
+        scanf("%d:%d",&row,&column);
+
+        scanf(" %s",fourthcommand);
+        if(strcmp(fourthcommand,"-size") == 0)
+        {
+            scanf("%d",&size);
+            scanf(" %s",flag);
+
+        }
+        else
+        {
+            printf("Invalidcommand\n");
+            return;
+        }
+    }
+    else
+    {
+        printf("Invalid command\n");
+        return;
     }
 }
 
@@ -199,21 +265,7 @@ void cat()
 
     getdirectory(mydir,dir);
 
-    chdir(mydir[0]);
-
-    for (int i = 1; i < mylength - 1; i++)
-    {
-        if(chdir(mydir[i]) == 0)
-        {
-            continue;
-        }
-
-        else if (chdir(mydir[i]) == -1)
-        {
-            mkdir(mydir[i]);
-            chdir(mydir[i]);
-        }
-    }
+    gotodir(mydir);
 
     FILE* file;
     file = fopen(mydir[mylength-1],"r");
@@ -245,23 +297,12 @@ void insertfile()
     char c;
     char* mydir[10];
     int row , column , rowgone = 0 , columngone = 0;
-
-    getdirectory(mydir,dir);
-    printf("-----------\n");
-    printf("%sk\n",mydir[0]);
-    printf("%sk\n",mydir[1]);
-    printf("%sk\n",mydir[2]);
-    printf("-----------\n");
- 
     FILE* firstfile;
     FILE* secondfile;
-
-    // getchar();
     char thirdcommand[30];
-    scanf("%s",thirdcommand);
 
-    printf("thirdcommand is %s\n",thirdcommand);
-    printf("-------------\n");
+    getdirectory(mydir,dir);
+    scanf("%s",thirdcommand);
 
     if(strcmp(thirdcommand , "-str") == 0)
     {
@@ -275,6 +316,7 @@ void insertfile()
             while(flag == 1)
             {
                 scanf("%c",&mystr[i]);
+                
                 if(mystr[i] == '-' && mystr[i-1] == ' ' && mystr[i-2] == '"')
                 {
                     mystr[i-2] = '\0';
@@ -283,9 +325,6 @@ void insertfile()
                 i++;
             }
         }
-
-        printf("first check mystr is %s\n",mystr);
-
         char fourthcommand[30];
 
         scanf("%s",fourthcommand);
@@ -301,23 +340,7 @@ void insertfile()
             return;   
         }
 
-        printf("just checkng , mystr = %s,\t row and column : %d %d\n",mystr,row,column);
-        printf("------------------\n");
-
-        chdir(mydir[0]);
-
-        for(int i = 1 ; i < mylength - 1 ; i++)
-        {
-            if(chdir(mydir[i]) == 0)
-            {
-                continue;
-            }
-            else if(chdir(mydir[i]) == -1)
-            {
-                printf("there is no directory named %s\n",mydir[i]);
-                return;
-            }
-        }
+        gotodir(mydir);
 
         firstfile = fopen(mydir[mylength-1],"r");
         if(firstfile == NULL)
@@ -378,9 +401,6 @@ void insertfile()
             secondfile = fopen("zapas.txt","r");
             copyfile(secondfile,firstfile);
 
-            fclose(firstfile);
-            fclose(secondfile);
-
             if(remove("zapas.txt") == 0)
             {
                 printf("your text inserted succesfully\n");
@@ -394,4 +414,73 @@ void insertfile()
         return;
     }
     back();
+}
+
+void removestr()
+{
+    getchar();
+    char dir[100];
+    char c;
+    char* mydir[10];
+    int rowgone = 0 , columngone = 0;
+
+    getdirectory(mydir,dir);
+
+    FILE* firstfile;
+    FILE* secondfile;
+
+    char thirdcommand[30] , fourthcommand[30] , flag[2];
+
+    getcommands2(thirdcommand,fourthcommand,flag);
+    printf("checking the inputs : mydir[1] %s , size %d , pos %d:%d , flag %s\n",mydir[1],size,row,column,flag);
+    
+    if(strcmp(flag,"-f") == 0)  //front
+    {
+        gotodir(mydir);
+        firstfile = fopen(mydir[mylength-1],"r");
+        secondfile = fopen("zapas.txt","w");
+        
+        while(rowgone != row-1)
+        {
+            c = fgetc(firstfile);
+            fputc(c,secondfile);
+            if(c == '\n')
+                rowgone++;
+        }
+        while(columngone != column)
+        {
+            c = fgetc(firstfile);
+            fputc(c,secondfile);
+            columngone++;
+        }
+
+        for(int i = 0 ; i < size ; i++)
+        {
+            c = fgetc(firstfile);
+        }
+
+        while (c != EOF)
+        {
+            c = fgetc(firstfile);
+            fputc(c,secondfile);
+        }
+
+        fclose(firstfile);
+        fclose(secondfile);
+        
+        firstfile = fopen(mydir[mylength-1],"w");
+        secondfile = fopen("zapas.txt","r");
+        copyfile(secondfile,firstfile);
+
+        if(remove("zapas.txt") == 0)
+        {
+            printf("deleting was succesfull!\n");
+            return;
+        }
+    }
+    if(strcmp(flag,"-b") == 0)  //back
+    {
+        gotodir(mydir);
+        firstfile = fopen(mydir[mylength-1],"r");
+    }
 }
