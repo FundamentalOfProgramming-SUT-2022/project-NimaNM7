@@ -1,7 +1,7 @@
 //Nima Moazzen
 //401106599
 
-//insert- Not Complete yet
+//version 2 - createfile and cat - needs a lot of debugging
 
 #include <stdio.h>
 #include <string.h>
@@ -255,7 +255,6 @@ void insertfile()
  
     FILE* firstfile;
     FILE* secondfile;
-    FILE* thirdfile;
 
     // getchar();
     char thirdcommand[30];
@@ -334,46 +333,42 @@ void insertfile()
             secondfile = fopen("zapas.txt","w");
 
     //writing the final text in another file
-            c = fgetc(firstfile);
             while (rowgone != row-1)
             {
+                c = fgetc(firstfile);  
                 fputc(c,secondfile);
                 if(c == '\n')
-                    rowgone++;
-                c = fgetc(firstfile);   
+                    rowgone++;   
             }
 
-            while(columngone != column-1)
+            while(columngone != column)
             {
+                c = fgetc(firstfile);
                 fputc(c , secondfile);
                 columngone++;
-                c = fgetc(firstfile);
             }
-
-            fputc(c,secondfile);
 
             for(int i = 0 ; mystr[i] != '\0' ; i++)
             {
                 fputc(mystr[i],secondfile);
             }
 
-            c = fgetc(firstfile);
+            
             while(c != EOF)
             {
-                fputc(c,secondfile);
                 c = fgetc(firstfile);
+                fputc(c,secondfile);
             }
 
             fclose(firstfile);
             fclose(secondfile);
 
-            if(remove(mydir[mylength-1]) == 0){}
     //copying our second file in the first file and deleting it
-            thirdfile = fopen(mydir[mylength-1],"w");
+            firstfile = fopen(mydir[mylength-1],"w");
             secondfile = fopen("zapas.txt","r");
-            copyfile(secondfile,thirdfile);
+            copyfile(secondfile,firstfile);
 
-            fclose(thirdfile);
+            fclose(firstfile);
             fclose(secondfile);
 
             if(remove("zapas.txt") == 0)
