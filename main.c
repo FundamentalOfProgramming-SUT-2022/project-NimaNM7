@@ -350,7 +350,20 @@ void insertfile()
 
             for(int i = 0 ; mystr[i] != '\0' ; i++)
             {
-                fputc(mystr[i],secondfile);
+                if(mystr[i] == '\\' && mystr[i+1] == '\\' && mystr[i+2] == 'n')
+                {
+                    fprintf(secondfile,"\\n");
+                    i+=2;
+                }
+                else if (mystr[i] == '\\' && mystr[i+1] == 'n')
+                {
+                    fprintf(secondfile,"\n");
+                    i++;
+                }
+                else
+                {
+                    fputc(mystr[i],secondfile);
+                }
             }
 
             
