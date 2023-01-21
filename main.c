@@ -1,7 +1,7 @@
 //Nima Moazzen
 //401106599
 
-//Remove , Copy and Paste - needs to be cleaner and debugged
+//Remove , Copy and Cut - needs to be cleaner and debugged
 
 #include <stdio.h>
 #include <string.h>
