@@ -1,7 +1,7 @@
 //Nima Moazzen
 //401106599
 
-//Remove , Copy and Cut - needs to be cleaner and debugged
+//Copy , Cut - needs to be cleaner
 
 #include <stdio.h>
 #include <string.h>
@@ -398,8 +398,14 @@ void insertfile()
     //writing the final text in another file
             while (rowgone != row-1)
             {
-                c = fgetc(firstfile);  
+                c = fgetc(firstfile);
+                if(c == EOF)
+                {
+                    c = '\n';
+                }
+    
                 fputc(c,secondfile);
+
                 if(c == '\n')
                     rowgone++;   
             }
@@ -407,6 +413,10 @@ void insertfile()
             while(columngone != column)
             {
                 c = fgetc(firstfile);
+                if(c == EOF)
+                {
+                    c = ' ';
+                }
                 fputc(c , secondfile);
                 columngone++;
             }
@@ -672,6 +682,7 @@ void copystr()
 
         if(size > column && row > 1)
             fseek(firstfile,(-1 * (size+1)),SEEK_CUR);
+
         else if(size > column && row == 1)
         {
             size = column;
