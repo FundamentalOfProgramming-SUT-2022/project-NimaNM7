@@ -1,7 +1,7 @@
 //Nima Moazzen
 //401106599
 
-// Copy and Remove 
+//Remove , Copy and Paste - needs to be cleaner and debugged
 
 #include <stdio.h>
 #include <string.h>
@@ -23,6 +23,7 @@ void insertfile();
 void removestr();
 void copytoclipboard(const char*);
 void copystr();
+void cutstr();
 
 
 int main()
@@ -110,6 +111,23 @@ int main()
             {
                 invalid = 0;
                 copystr();
+            }
+            else
+            {
+                printf("invalid command1\n");
+                continue;
+            }
+        }
+
+    //Cutstr    
+        if(strcmp(firstcommand , "cutstr") == 0)
+        {
+            getchar();
+            scanf("%s",secondcommand);
+            if(strcmp(secondcommand , "--file") == 0)
+            {
+                invalid = 0;
+                cutstr();
             }
             else
             {
@@ -554,6 +572,7 @@ void removestr()
         if(remove("zapas.txt") == 0)
         {
             printf("Removing was seccesfull!\n");
+            return;
         }
     }
 }
@@ -613,7 +632,7 @@ void copystr()
         for(int i = 0 ; i < size ; i++)
         {
             c = fgetc(firstfile);
-            if(c < 32 || c > 127)
+            if(c == EOF)
             {
                 mystr[i] = '\0';
                 break;
@@ -627,6 +646,7 @@ void copystr()
         printf("Copying is done!\n");
         return;
     }
+
     if(strcmp(flag,"-b") == 0) //back
     {
         if(gotodir(mydir) == 0)
@@ -653,7 +673,10 @@ void copystr()
         if(size > column && row > 1)
             fseek(firstfile,(-1 * (size+1)),SEEK_CUR);
         else if(size > column && row == 1)
-            fseek(firstfile,(-1 * column),SEEK_CUR);
+        {
+            size = column;
+            fseek(firstfile,(-1 * size),SEEK_CUR);
+        }
         else
             fseek(firstfile,(-1 * size),SEEK_CUR);
 
@@ -664,9 +687,158 @@ void copystr()
         }
 
         fclose(firstfile);
-        printf("len is %d\n",strlen(mystr));
+
         copytoclipboard(mystr);
         printf("Copying is done\n");
         return;
+    }
+}
+
+void cutstr()
+{
+    getchar();
+    char dir[100] , mystr[10000];
+    char c;
+    char* mydir[10];
+    int rowgone = 0 , columngone = 0;
+
+    getdirectory(mydir,dir);
+
+    FILE* firstfile;
+    FILE* secondfile;
+
+    char thirdcommand[30] , fourthcommand[30] , flag[2];
+
+    if(getcommands2(thirdcommand,fourthcommand,flag) == 0)
+        return;
+
+    if(strcmp(flag,"-f") == 0)  //front
+    {
+        if(gotodir(mydir) == 0)
+            return;
+        firstfile = fopen(mydir[mylength-1],"r");
+        if(firstfile == NULL)
+        {
+            printf("There is no file named %s!\n",mydir[mylength-1]);
+            return;   
+        }
+        secondfile = fopen("zapas.txt","w");
+        while(rowgone != row-1)
+        {
+            c = fgetc(firstfile);
+            fputc(c,secondfile);
+            if(c == '\n')
+                rowgone++;
+        }
+        while(columngone != column)
+        {
+            c = fgetc(firstfile);
+            fputc(c,secondfile);
+            columngone++;
+        }
+        for(int i = 0 ; i < size ; i++)
+        {
+            c = fgetc(firstfile);
+            if(c == EOF)
+            {
+                mystr[i] = '\0';
+                break;
+            }
+            else
+            {
+                mystr[i] = c;
+            }
+        }
+
+        while (c != EOF)
+        {
+            c = fgetc(firstfile);
+            fputc(c,secondfile);
+        }
+
+        copytoclipboard(mystr);
+
+        fclose(firstfile);
+        fclose(secondfile);
+
+        firstfile = fopen(mydir[mylength-1],"w");
+        secondfile = fopen("zapas.txt","r");
+        copyfile(secondfile,firstfile);
+
+        if(remove("zapas.txt") == 0)
+        {
+            printf("Cutting was succesfull!\n");
+            return;
+        }
+    }
+
+    if(strcmp(flag,"-b") == 0)  //back
+    {
+        gotodir(mydir);
+        firstfile = fopen(mydir[mylength-1],"r");
+        if(firstfile == NULL)
+        {
+            printf("There is no file named %s!\n",mydir[mylength-1]);
+            return;
+        }
+        secondfile = fopen("zapas.txt","w");
+
+        while (rowgone != row-1)
+        {
+            c = fgetc(firstfile);
+            fputc(c,secondfile);
+            if(c == '\n')
+                rowgone++;            
+        }
+        while (columngone != column)
+        {
+            c = fgetc(firstfile);
+            fputc(c,secondfile);
+            columngone++;
+        }
+
+        if(size > column && row > 1)
+            fseek(firstfile,(-1 * (size+1)),SEEK_CUR);
+        else if(size > column && row == 1)
+        {
+            size = column;
+            fseek(firstfile,(-1 * size),SEEK_CUR);
+        }
+        else
+            fseek(firstfile,(-1 * size),SEEK_CUR);
+
+        for(int i = 0 ; i < size ; i++)
+        {
+            c = fgetc(firstfile);
+            mystr[i] = c;
+        }
+
+        if(size > column && row > 1)
+            size ++;
+        else if(size > column && row == 1)
+            size = column;
+        
+        fseek(secondfile,(-1 * size),SEEK_CUR);
+
+        while(c != EOF)
+        {
+            c = fgetc(firstfile);
+            fputc(c,secondfile);
+        }
+
+        copytoclipboard(mystr);
+
+        fclose(firstfile);
+        fclose(secondfile);
+
+        firstfile = fopen(mydir[mylength-1],"w");
+        secondfile = fopen("zapas.txt","r");
+        copyfile(secondfile,firstfile);
+
+        if(remove("zapas.txt") == 0)
+        {
+            printf("Cutting was seccesfull!\n");
+            return;
+        }
     }
 }
