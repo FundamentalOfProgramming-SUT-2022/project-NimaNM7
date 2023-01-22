@@ -1,7 +1,7 @@
 //Nima Moazzen
 //401106599
 
-//Copy , Cut - needs to be cleaner
+//Paste -- got more functionaise
 
 #include <stdio.h>
 #include <string.h>
@@ -10,13 +10,16 @@
 #include <dirent.h>
 #include <windows.h>
 
-int mylength , row , column , size;
+int mylength , row , column , size , rowgone , columngone;
 
 void getdirectory(char** , char*);
 int gotodir(char**);
 void back();
 void copyfile(FILE* , FILE*);
 int getcommands2(char*, char*, char*);
+int gotopos1(FILE*,int , int , char); //For functions which don't need a second file (like copystr)
+int gotopos2(FILE*, FILE*, int, int, char); //For functions which need second file and they have limits (like cutstr and removestr)
+void gotopos3(FILE*, FILE*, int, int, char); //For functions which need a second file and they are for inserting without limits (like insertstr and pastestr)
 void createfile();
 void cat();
 void insertfile();
@@ -24,6 +27,7 @@ void removestr();
 void copytoclipboard(const char*);
 void copystr();
 void cutstr();
+void pastestr();
 
 
 int main()
@@ -102,7 +106,7 @@ int main()
                 continue;
             }
         }
-    //Copystr       
+    //Copy     
         if(strcmp(firstcommand , "copystr") == 0)
         {
             getchar();
@@ -119,7 +123,7 @@ int main()
             }
         }
 
-    //Cutstr    
+    //Cut    
         if(strcmp(firstcommand , "cutstr") == 0)
         {
             getchar();
@@ -136,6 +140,24 @@ int main()
             }
         }
 
+    //Paste  
+        if(strcmp(firstcommand , "pastestr") == 0)
+        {
+            getchar();
+            scanf("%s",secondcommand);
+            if(strcmp(secondcommand , "--file") == 0)
+            {
+                invalid = 0;
+                pastestr();
+            }
+            else
+            {
+                printf("invalid command1\n");
+                continue;
+            }
+        }
+
+    //Invalid Input
         else if(invalid)
         {
             printf("invalid command\n");
@@ -224,6 +246,18 @@ void copyfile(FILE* file1 , FILE* file2)
     fclose(file2);
 }
 
+void copytoclipboard(const char* word)
+{
+    const size_t len = strlen(word) + 1;
+    HGLOBAL hMem =  GlobalAlloc(GMEM_MOVEABLE, len);
+    memcpy(GlobalLock(hMem), word , len);
+    GlobalUnlock(hMem);
+    OpenClipboard(0);
+    EmptyClipboard();
+    SetClipboardData(CF_TEXT, hMem);
+    CloseClipboard();
+}
+
 int getcommands2(char* thirdcommand , char* fourthcommand , char* flag)
 {
     scanf("%s",thirdcommand);
@@ -251,6 +285,87 @@ int getcommands2(char* thirdcommand , char* fourthcommand , char* flag)
     }
     return 1;
 }
+
+int gotopos1(FILE* file1 , int row , int column , char c)
+{
+    while (rowgone != row - 1)
+    {
+        c = fgetc(file1);
+        if(c == EOF)
+        {
+            printf("Out of Limit\n");
+            return 0;
+        }
+        if(c == '\n')
+            rowgone++;
+    }
+    while (columngone != column)
+    {
+        c = fgetc(file1);
+        if(c == EOF)
+        {
+            printf("Out of Limit");
+            return 0;
+        }
+        columngone++;
+    }
+    return 1;
+}
+
+int gotopos2(FILE* file1, FILE* file2, int row , int column , char c)
+{
+    while (rowgone != row - 1)
+    {
+        c = fgetc(file1);
+        if(c == EOF)
+        {
+            printf("Out of Limit\n");
+            return 0;
+        }
+        fputc(c,file2);
+        if(c == '\n')
+            rowgone++;
+    }
+    while (columngone != column)
+    {
+        c = fgetc(file1);
+        if(c == EOF)
+        {
+            printf("Out of Limit");
+            return 0;
+        }
+        fputc(c,file2);
+        columngone++;
+    }
+    return 1;
+}
+
+void gotopos3(FILE* file1, FILE* file2, int row , int column , char c)
+{
+    while (rowgone != row - 1)
+    {
+        c = fgetc(file1);
+        if(c == EOF)
+        {
+            c = '\n';
+        }
+        fputc(c,file2);
+        if(c == '\n')
+            rowgone++;
+    }
+    while (columngone != column)
+    {
+        c = fgetc(file1);
+        if(c == EOF)
+        {
+            c = ' ';
+        }
+        fputc(c,file2);
+        columngone++;
+    }
+}
+
+
 
 void createfile()
 {
@@ -334,11 +449,12 @@ void cat()
 
 void insertfile()
 {
+
     getchar();
     char dir[100] , mystr[1000];
     char c;
     char* mydir[10];
-    int row , column , rowgone = 0 , columngone = 0;
+    rowgone = 0 , columngone = 0;
     FILE* firstfile;
     FILE* secondfile;
     char thirdcommand[30];
@@ -358,7 +474,6 @@ void insertfile()
             while(flag == 1)
             {
                 scanf("%c",&mystr[i]);
-                
                 if(mystr[i] == '-' && mystr[i-1] == ' ' && mystr[i-2] == '"')
                 {
                     mystr[i-2] = '\0';
@@ -396,30 +511,8 @@ void insertfile()
             secondfile = fopen("zapas.txt","w");
 
     //writing the final text in another file
-            while (rowgone != row-1)
-            {
-                c = fgetc(firstfile);
-                if(c == EOF)
-                {
-                    c = '\n';
-                }
-    
-                fputc(c,secondfile);
 
-                if(c == '\n')
-                    rowgone++;   
-            }
-
-            while(columngone != column)
-            {
-                c = fgetc(firstfile);
-                if(c == EOF)
-                {
-                    c = ' ';
-                }
-                fputc(c , secondfile);
-                columngone++;
-            }
+            gotopos3(firstfile,secondfile,row,column,c);
 
             for(int i = 0 ; mystr[i] != '\0' ; i++)
             {
@@ -448,7 +541,6 @@ void insertfile()
 
             fclose(firstfile);
             fclose(secondfile);
-
     //copying our second file in the first file and deleting it
             firstfile = fopen(mydir[mylength-1],"w");
             secondfile = fopen("zapas.txt","r");
@@ -475,7 +567,7 @@ void removestr()
     char dir[100];
     char c;
     char* mydir[10];
-    int rowgone = 0 , columngone = 0;
+    rowgone = 0 , columngone = 0;
 
     getdirectory(mydir,dir);
 
@@ -498,19 +590,9 @@ void removestr()
             return;   
         }
         secondfile = fopen("zapas.txt","w");
-        while(rowgone != row-1)
-        {
-            c = fgetc(firstfile);
-            fputc(c,secondfile);
-            if(c == '\n')
-                rowgone++;
-        }
-        while(columngone != column)
-        {
-            c = fgetc(firstfile);
-            fputc(c,secondfile);
-            columngone++;
-        }
+
+        if(gotopos2(firstfile,secondfile,row,column,c) == 0) return;
+
         for(int i = 0 ; i < size ; i++)
         {
             c = fgetc(firstfile);
@@ -587,25 +669,13 @@ void removestr()
     }
 }
 
-void copytoclipboard(const char* word)
-{
-    const size_t len = strlen(word) + 1;
-    HGLOBAL hMem =  GlobalAlloc(GMEM_MOVEABLE, len);
-    memcpy(GlobalLock(hMem), word , len);
-    GlobalUnlock(hMem);
-    OpenClipboard(0);
-    EmptyClipboard();
-    SetClipboardData(CF_TEXT, hMem);
-    CloseClipboard();
-}
-
 void copystr()
 {
     getchar();
     char dir[100] , mystr[10000];
     char c;
     char* mydir[10];
-    int rowgone = 0 , columngone = 0;
+    rowgone = 0 , columngone = 0;
 
     getdirectory(mydir,dir);
 
@@ -627,17 +697,7 @@ void copystr()
             return;   
         }
 
-        while(rowgone != row-1)
-        {
-            c = fgetc(firstfile);
-            if(c == '\n')
-                rowgone++;
-        }
-        while(columngone != column)
-        {
-            c = fgetc(firstfile);
-            columngone++;
-        }
+        if(gotopos1(firstfile,row,column,c) == 0) return;
 
         for(int i = 0 ; i < size ; i++)
         {
@@ -711,7 +771,7 @@ void cutstr()
     char dir[100] , mystr[10000];
     char c;
     char* mydir[10];
-    int rowgone = 0 , columngone = 0;
+    rowgone = 0 , columngone = 0;
 
     getdirectory(mydir,dir);
 
@@ -734,19 +794,9 @@ void cutstr()
             return;   
         }
         secondfile = fopen("zapas.txt","w");
-        while(rowgone != row-1)
-        {
-            c = fgetc(firstfile);
-            fputc(c,secondfile);
-            if(c == '\n')
-                rowgone++;
-        }
-        while(columngone != column)
-        {
-            c = fgetc(firstfile);
-            fputc(c,secondfile);
-            columngone++;
-        }
+        
+        if(gotopos2(firstfile,secondfile,row,column,c) == 0) return;
+
         for(int i = 0 ; i < size ; i++)
         {
             c = fgetc(firstfile);
@@ -851,5 +901,69 @@ void cutstr()
             printf("Cutting was seccesfull!\n");
             return;
         }
+    }
+}
+
+void pastestr()
+{
+    getchar();
+    char dir[100] , thirdcommand[30];
+    char c;
+    char* mydir[10];
+    rowgone = 0 , columngone = 0;
+
+    getdirectory(mydir,dir);
+
+    FILE* firstfile;
+    FILE* secondfile;
+
+    scanf("%s",thirdcommand);
+
+    if(strcmp(thirdcommand , "-pos") == 0)
+    {
+        if(gotodir(mydir) == 0)
+            return;
+
+        scanf("%d:%d",&row,&column);
+        printf("checking the inputs , pos %d:%d , mydir[1] %s\n",row,column,mydir[1]);
+        firstfile = fopen(mydir[mylength-1],"r");
+        secondfile = fopen("zapas.txt","w");
+
+        OpenClipboard(0);
+        HANDLE text = GetClipboardData(CF_TEXT);
+        char* mytext = (char*) text;
+        CloseClipboard();
+        
+        gotopos3(firstfile,secondfile,row,column,c);
+
+        fprintf(secondfile,mytext);
+        // for(int i = 0 ; i < strlen(mytext) ; i++)
+        // {
+        //     fputc(mytext[i],secondfile);
+        // }
+
+        while (c != EOF)
+        {
+            c = fgetc(firstfile);
+            fputc(c,secondfile);
+        }
+        fclose(firstfile);
+        fclose(secondfile);
+
+        firstfile = fopen(mydir[mylength-1],"w");
+        secondfile = fopen("zapas.txt","r");
+
+        copyfile(secondfile,firstfile);
+
+        if(remove("zapas.txt") == 0)
+        {
+            printf("Pasting is complete\n");
+            return;
+        }
+    }   
+    else
+    {
+        printf("Invalid Command!\n");
+        return;
     }
 }
