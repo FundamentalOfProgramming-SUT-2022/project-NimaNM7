@@ -1,7 +1,7 @@
 //Nima Moazzen
 //401106599
 
-//Paste -- got more functionaise
+//find and its options (except byword) added. It has tons of bugs and im not going to fix them.
 
 #include <stdio.h>
 #include <string.h>
@@ -20,6 +20,8 @@ int getcommands2(char*, char*, char*);
 int gotopos1(FILE*,int , int , char); //For functions which don't need a second file (like copystr)
 int gotopos2(FILE*, FILE*, int, int, char); //For functions which need second file and they have limits (like cutstr and removestr)
 void gotopos3(FILE*, FILE*, int, int, char); //For functions which need a second file and they are for inserting without limits (like insertstr and pastestr)
+void delete(char*,int);
+
 void createfile();
 void cat();
 void insertfile();
@@ -28,6 +30,7 @@ void copytoclipboard(const char*);
 void copystr();
 void cutstr();
 void pastestr();
+void find();
 
 
 int main()
@@ -53,6 +56,7 @@ int main()
             {
                 invalid = 0;
                 createfile();
+                continue;
             }
         }
 
@@ -65,10 +69,6 @@ int main()
             {
                 invalid = 0;
                 cat();
-            }
-            else
-            {
-                printf("invalid command\n");
                 continue;
             }
         }
@@ -82,10 +82,6 @@ int main()
             {
                 invalid = 0;
                 insertfile();
-            }
-            else
-            {
-                printf("invalid command1\n");
                 continue;
             }
         }
@@ -99,10 +95,6 @@ int main()
             {
                 invalid = 0;
                 removestr();
-            }
-            else
-            {
-                printf("invalid command1\n");
                 continue;
             }
         }
@@ -115,10 +107,6 @@ int main()
             {
                 invalid = 0;
                 copystr();
-            }
-            else
-            {
-                printf("invalid command1\n");
                 continue;
             }
         }
@@ -132,10 +120,6 @@ int main()
             {
                 invalid = 0;
                 cutstr();
-            }
-            else
-            {
-                printf("invalid command1\n");
                 continue;
             }
         }
@@ -149,10 +133,19 @@ int main()
             {
                 invalid = 0;
                 pastestr();
+                continue;
             }
-            else
+        }
+
+    //Find
+        if(strcmp(firstcommand,"find") == 0)
+        {
+            getchar();
+            scanf("%s",secondcommand);
+            if(strcmp(secondcommand,"--str") == 0)
             {
-                printf("invalid command1\n");
+                invalid = 0;
+                find();
                 continue;
             }
         }
@@ -206,7 +199,7 @@ void getdirectory(char** step2 , char* step1)
 
 int gotodir(char** mydir)
 {
-    chdir(mydir[0]);
+    chdir("root");
 
     for(int i = 1 ; i < mylength - 1 ; i++)
     {
@@ -362,6 +355,14 @@ void gotopos3(FILE* file1, FILE* file2, int row , int column , char c)
         }
         fputc(c,file2);
         columngone++;
+    }
+}
+
+void delete(char* str,int index)
+{
+    for(int i = index ; i < strlen(str) ; i++)
+    {
+        str[i] = str[i+1];
     }
 }
 
@@ -965,5 +966,207 @@ void pastestr()
     {
         printf("Invalid Command!\n");
         return;
+    }
+}
+
+void find()
+{
+    char mystr[10000] , thirdcommand[30];
+    char c , dir[1000];
+    int position = 0;
+    char* mydir[10];
+    FILE* firstfile;
+
+    getchar();
+    char first = getchar();
+       
+    if(first == '"')
+    {
+        int a = 0 ;
+        int flag = 1;
+        while(flag == 1)
+        {
+            scanf("%c",&mystr[a]);
+            if(mystr[a] == '-' && mystr[a-1] == ' ' && mystr[a-2] == '"')
+            {
+                mystr[a-2] = '\0';
+                flag = 0;
+            }
+            a++;
+        }
+        scanf("%s",thirdcommand);
+        if(strcmp(thirdcommand,"-file") == 0) 
+        {
+            getchar();
+            getdirectory(mydir,dir);
+        }
+    }
+    else
+    {
+        mystr[0] = first;
+        scanf("%s",mystr+1);
+
+        scanf("%s",thirdcommand);
+        if(strcmp(thirdcommand,"--file") == 0) 
+        {
+            getchar();
+            getdirectory(mydir,dir);
+        }
+    }
+
+    gotodir(mydir);
+
+    firstfile = fopen(mydir[mylength-1],"r");
+    if(firstfile == NULL)
+    {
+        printf("There is no file named %s!\n",mydir[mylength-1]);
+        return;
+    }
+
+    char addstring[10000];
+    c = fgetc(firstfile);
+    int count = 0;
+    while (c != EOF)
+    {
+        addstring[count] = c;
+        count++;
+        c = fgetc(firstfile);
+    }
+
+    //Starting the main part
+
+    // printf("checking the inputs : mydir[0] %s , mydir[1] %s , mystr %s\n",mydir[0],mydir[1],mystr);
+
+    char last = getchar();
+
+    printf("%c\n",last);
+    if(last == 'c') //for count option
+    {
+        int counter = 0;
+        for(int i = 0 ; i <= count ; i++)
+        {
+            int flag = 0;
+            if(addstring[i] == mystr[0])
+            {
+                flag = 1;
+                for(int j = 1 ; j < strlen(mystr) ; j++)
+                {
+                    if(addstring[i+j] != mystr[j])
+                    {
+                        flag = 0;
+                        break;
+                    }
+                } 
+            }
+            if (flag == 1)
+            {
+                counter++;
+            }
+        }
+        printf("%d\n",counter);
+        return;
+    }
+
+    else if(last == 'a') //for "at" option
+    {
+        int n , kol = 0;
+        getchar() ,   scanf("%d",&n);
+        printf("the number input is %d\n",n);
+        int counter = 0;
+        for(int i = 0 ; i <= count ; i++)
+        {
+            int flag = 0;
+            if(addstring[i] == mystr[0])
+            {
+                flag = 1;
+                for(int j = 1 ; j < strlen(mystr) ; j++)
+                {
+                    if(addstring[i+j] != mystr[j])
+                    {
+                        flag = 0;
+                        break;
+                    }
+                } 
+            }
+            if (flag == 1)
+            {
+                counter++;
+            }
+            if(counter == n)
+            {
+                printf("%d\n",i);
+                kol = 1;
+                return;
+            }
+        }
+        if(kol == 0)
+        {   
+            printf("-1\n");
+            return;
+        }
+    }
+
+    //Regular Situation with wildcards
+    
+
+    if(mystr[0] == '*')
+    {
+        delete(mystr,0);
+
+        for(int i = count ; i >= 0 ; i--)
+        {
+            if(addstring[i] == mystr[strlen(mystr)-1])
+            {
+                int flag = 1;
+                for(int j = 0 ; j < strlen(mystr) ; j--)
+                {
+                    if(addstring[i-j] != mystr[strlen(mystr)-j])
+                    {
+                        flag = 0;
+                        break;
+                    }
+                }
+                if(flag == 1)
+                {
+                    printf("%d\n",i);
+                    return;
+                }
+            }
+            if(i == count)
+            {
+                printf("-1\n");
+                return;
+            }
+        }
+    }
+
+    else if(mystr[strlen(mystr)-1] == '*' && mystr[strlen(mystr)-1] != '\\')
+        mystr[strlen(mystr)-1] = '\0';
+
+
+    for(int i = 0 ; i <= count ; i++)
+    {
+        if(addstring[i] == mystr[0])
+        {
+            int flag = 1;
+            for(int j = 1 ; j < strlen(mystr) ; j++)
+            {
+                if(addstring[i+j] != mystr[j])
+                {
+                    flag = 0;
+                    break;
+                }
+            }
+            if(flag == 1)
+            {
+                printf("%d\n",i);
+                return;
+            }
+        }
+        if(i == count)
+        {
+            printf("-1\n");
+            return;
+        }
     }
 }
