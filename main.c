@@ -1,7 +1,7 @@
 //Nima Moazzen
 //401106599
 
-//find grep replace are ignored - compare added and debugged
+//compare added - without find replace and grep(grep is next step)
 
 #include <stdio.h>
 #include <string.h>
@@ -23,6 +23,7 @@ void gotopos3(FILE*, FILE*, int, int, char); //For functions which need a second
 void delete(char*,int);
 int maxi(int,int);
 int mini(int,int);
+int filetostr(FILE*,char*,char*,char**);
 
 void createfile();
 void cat();
@@ -406,6 +407,43 @@ int mini(int a ,int b)
         return b;
     else
         return a;
+}
+
+int filetostr(FILE* file,char* filename, char* str1, char** str2)
+{
+    int len = 0;
+    char c;
+    file = fopen(filename,"r");
+    if(file == NULL)
+    {
+        printf("There is no file named %s\n",filename);
+        return -1;
+    }
+
+    c = fgetc(file);
+    int index = 0;
+    while (c != EOF)
+    {
+        str1[index] = c;
+        if(str1[index-1] == '\n' && str1[index] == '\n')
+        {
+            str1[index] = ' ';
+            index++;
+            str1[index] = '\n';
+        }
+        index++;
+        c = fgetc(file);
+    }
+
+    char* mydelim = strtok(str1,"\n");
+    for (int i = 0; mydelim != NULL; i++)
+    {
+        str2[i] = mydelim;
+        mydelim = strtok(NULL,"\n");
+        len++;
+    }
+
+    return len;
 }
 
 
@@ -1218,94 +1256,24 @@ void find()
 
 void compare()
 {
-    char c ,dir1[1000] , dir2[1000] ,text1[10000] , text2[10000];
-    char* mydir1[10];
-    char* mydir2[10];
+    char dir1[1000] , dir2[1000] ,text1[10000] , text2[10000];
+    char* mydir1[100];
+    char* mydir2[100];
     char* line1[1000];
     char* line2[1000];
     FILE* file1;
     FILE* file2;
+    int len1 , len2;
 
     getdirectory(mydir1,dir1);
 
     if(gotodir(mydir1) == 0) return;
-    file1 = fopen(mydir1[mylength-1],"r");
     
-    if(file1 == NULL)
-    {
-        printf("There is no file named %s\n",mydir1[mylength-1]);
-        return;
-    }
+    len1 = filetostr(file1,mydir1[mylength-1],text1,line1);
 
-    back();
     getdirectory(mydir2,dir2);
-
     if(gotodir(mydir2) == 0) return;
-    file2 = fopen(mydir2[mylength-1],"r");
-    
-    if(file2 == NULL)
-    {
-        printf("There is no file named %s\n",mydir2[mylength-1]);
-        return;
-    }
-
-    //puting the text file in an array for easier access
-    c = fgetc(file1);
-    int index = 0;
-    while (c != EOF)
-    {
-        text1[index] = c;
-        if(text1[index-1] == '\n' && text1[index] == '\n') //for text files with empty lines
-        {
-            text1[index] = ' ';
-            index++;
-            text1[index] = '\n';
-        }
-        index++;
-        c = fgetc(file1);
-    }
-    text1[index] = '\0';
-
-    c = fgetc(file2);
-    index = 0;
-    while (c != EOF)
-    {
-        text2[index] = c;
-        if(text2[index-1] == '\n' && text2[index] == '\n') //for text files with empty lines
-        {
-            text2[index] = ' ';
-            index++;
-            text2[index] = '\n';
-        }
-        index++;
-        c = fgetc(file2);
-    }
-    text2[index] = '\0';
-
-    printf("len matin.txt = %d and len ali.txt = %d\n",strlen(text2),strlen(text1));
-
-    //making our arrays 2 dimensional by \n
-    int len1 = 0 , len2 = 0;
-
-    char* mydelim = strtok(text1,"\n");
-
-    for (int i = 0; mydelim != NULL; i++)
-    {
-        line1[i] = mydelim;
-        mydelim = strtok(NULL,"\n");
-        len1++;
-    }
-
-    char* mydelim2 = strtok(text2,"\n");
-
-    for (int i = 0; mydelim2 != NULL; i++)
-    {
-        line2[i] = mydelim2;
-        mydelim2 = strtok(NULL,"\n");
-        len2++;
-    }
-
-    printf("--%s---\n",line2[3]);
+    len2 = filetostr(file2,mydir2[mylength-1],text2,line2);
 
     for(int i = 0 ; i < maxi(len1,len2) ; i++)
     {
