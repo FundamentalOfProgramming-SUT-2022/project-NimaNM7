@@ -1,7 +1,7 @@
 //Nima Moazzen
 //401106599
 
-//ignoring most parts of find , all of grep and replace , adding compare
+//find grep replace are ignored - compare added and debugged
 
 #include <stdio.h>
 #include <string.h>
@@ -197,7 +197,9 @@ void getdirectory(char** step2 , char* step1)
         }
         if(withoutspace == 1 && x == ' ')
         {
+            step1[index] = '\0';
             flag = 0;
+            getchar();
         }
         if(x == '-')
         {
@@ -219,6 +221,10 @@ void getdirectory(char** step2 , char* step1)
 
 int gotodir(char** mydir)
 {
+    while(fopen("main.c","r") == NULL)
+    {
+        chdir("..");
+    }
     chdir("root");
 
     for(int i = 1 ; i < mylength - 1 ; i++)
@@ -703,6 +709,7 @@ void removestr()
             return;
         }
     }
+    back();
 }
 
 void copystr()
@@ -799,6 +806,7 @@ void copystr()
         printf("Copying is done\n");
         return;
     }
+    back();
 }
 
 void cutstr()
@@ -867,6 +875,7 @@ void cutstr()
             printf("Cutting was succesfull!\n");
             return;
         }
+        back();
     }
 
     if(strcmp(flag,"-b") == 0)  //back
@@ -1002,6 +1011,7 @@ void pastestr()
         printf("Invalid Command!\n");
         return;
     }
+    back();
 }
 
 void find() 
@@ -1218,16 +1228,21 @@ void compare()
 
     getdirectory(mydir1,dir1);
 
-    gotodir(mydir1);
+    if(gotodir(mydir1) == 0) return;
     file1 = fopen(mydir1[mylength-1],"r");
+    
     if(file1 == NULL)
     {
         printf("There is no file named %s\n",mydir1[mylength-1]);
         return;
     }
-    
+
+    back();
     getdirectory(mydir2,dir2);
+
+    if(gotodir(mydir2) == 0) return;
     file2 = fopen(mydir2[mylength-1],"r");
+    
     if(file2 == NULL)
     {
         printf("There is no file named %s\n",mydir2[mylength-1]);
@@ -1242,7 +1257,7 @@ void compare()
         text1[index] = c;
         if(text1[index-1] == '\n' && text1[index] == '\n') //for text files with empty lines
         {
-            text1[index] = ' ' ;
+            text1[index] = ' ';
             index++;
             text1[index] = '\n';
         }
@@ -1258,7 +1273,7 @@ void compare()
         text2[index] = c;
         if(text2[index-1] == '\n' && text2[index] == '\n') //for text files with empty lines
         {
-            text2[index] = ' ' ;
+            text2[index] = ' ';
             index++;
             text2[index] = '\n';
         }
@@ -1266,6 +1281,8 @@ void compare()
         c = fgetc(file2);
     }
     text2[index] = '\0';
+
+    printf("len matin.txt = %d and len ali.txt = %d\n",strlen(text2),strlen(text1));
 
     //making our arrays 2 dimensional by \n
     int len1 = 0 , len2 = 0;
@@ -1288,9 +1305,11 @@ void compare()
         len2++;
     }
 
+    printf("--%s---\n",line2[3]);
+
     for(int i = 0 ; i < maxi(len1,len2) ; i++)
     {
-        if(i >= mini(len1,len2) && strstr(line2[i-1],"\0") != NULL)
+        if(i >= mini(len1,len2) && line2[i] == NULL)
         {
             printf("-------#%d-#%d-------\n",i+1,maxi(len1,len2));
             for(int j = i ; j < maxi(len1,len2) ; j++)
@@ -1299,7 +1318,7 @@ void compare()
             }
             return;
         }
-        else if(i >= mini(len1,len2) && strstr(line1[i-1],"\0") != NULL)
+        else if(i >= mini(len1,len2) && line1[i] == NULL)
         {
             printf("-------#%d-#%d-------\n",i+1,maxi(len1,len2));
             for(int j = i ; j < maxi(len1,len2) ; j++)
