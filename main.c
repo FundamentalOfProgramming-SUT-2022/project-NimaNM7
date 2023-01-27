@@ -1,7 +1,7 @@
 //Nima Moazzen
 //401106599
 
-//find and its options (except byword) added. It has tons of bugs and im not going to fix them.
+//ignoring most parts of find , all of grep and replace , adding compare
 
 #include <stdio.h>
 #include <string.h>
@@ -21,6 +21,8 @@ int gotopos1(FILE*,int , int , char); //For functions which don't need a second 
 int gotopos2(FILE*, FILE*, int, int, char); //For functions which need second file and they have limits (like cutstr and removestr)
 void gotopos3(FILE*, FILE*, int, int, char); //For functions which need a second file and they are for inserting without limits (like insertstr and pastestr)
 void delete(char*,int);
+int maxi(int,int);
+int mini(int,int);
 
 void createfile();
 void cat();
@@ -31,6 +33,7 @@ void copystr();
 void cutstr();
 void pastestr();
 void find();
+void compare();
 
 
 int main()
@@ -150,6 +153,15 @@ int main()
             }
         }
 
+    //Compare    
+        if(strcmp(firstcommand,"compare") == 0)
+        {
+            getchar();
+            invalid = 0;
+            compare();
+            continue;
+        }
+
     //Invalid Input
         else if(invalid)
         {
@@ -164,18 +176,26 @@ int main()
 void getdirectory(char** step2 , char* step1)
 {
     int flag = 1 , index = 0;
+    int withoutspace = 0;
     
     mylength = 0;
     while (flag == 1)
     {
         char x;
         scanf("%c",&x);
+        if(index == 0 && x != '"')
+            withoutspace = 1;
+
         if(x != '"' && x != '\n' && x != '-')
         {
             step1[index] = x;
             index++;
         }
         if(x == '\n')
+        {
+            flag = 0;
+        }
+        if(withoutspace == 1 && x == ' ')
         {
             flag = 0;
         }
@@ -366,6 +386,21 @@ void delete(char* str,int index)
     }
 }
 
+int maxi(int a ,int b)
+{
+    if(a > b)
+        return a;
+    else
+        return b;
+}
+
+int mini(int a ,int b)
+{
+    if(a > b)
+        return b;
+    else
+        return a;
+}
 
 
 void createfile()
@@ -969,7 +1004,7 @@ void pastestr()
     }
 }
 
-void find()
+void find() 
 {
     char mystr[10000] , thirdcommand[30];
     char c , dir[1000];
@@ -1167,6 +1202,116 @@ void find()
         {
             printf("-1\n");
             return;
+        }
+    }
+}
+
+void compare()
+{
+    char c ,dir1[1000] , dir2[1000] ,text1[10000] , text2[10000];
+    char* mydir1[10];
+    char* mydir2[10];
+    char* line1[1000];
+    char* line2[1000];
+    FILE* file1;
+    FILE* file2;
+
+    getdirectory(mydir1,dir1);
+
+    gotodir(mydir1);
+    file1 = fopen(mydir1[mylength-1],"r");
+    if(file1 == NULL)
+    {
+        printf("There is no file named %s\n",mydir1[mylength-1]);
+        return;
+    }
+    
+    getdirectory(mydir2,dir2);
+    file2 = fopen(mydir2[mylength-1],"r");
+    if(file2 == NULL)
+    {
+        printf("There is no file named %s\n",mydir2[mylength-1]);
+        return;
+    }
+
+    //puting the text file in an array for easier access
+    c = fgetc(file1);
+    int index = 0;
+    while (c != EOF)
+    {
+        text1[index] = c;
+        if(text1[index-1] == '\n' && text1[index] == '\n') //for text files with empty lines
+        {
+            text1[index] = ' ' ;
+            index++;
+            text1[index] = '\n';
+        }
+        index++;
+        c = fgetc(file1);
+    }
+    text1[index] = '\0';
+
+    c = fgetc(file2);
+    index = 0;
+    while (c != EOF)
+    {
+        text2[index] = c;
+        if(text2[index-1] == '\n' && text2[index] == '\n') //for text files with empty lines
+        {
+            text2[index] = ' ' ;
+            index++;
+            text2[index] = '\n';
+        }
+        index++;
+        c = fgetc(file2);
+    }
+    text2[index] = '\0';
+
+    //making our arrays 2 dimensional by \n
+    int len1 = 0 , len2 = 0;
+
+    char* mydelim = strtok(text1,"\n");
+
+    for (int i = 0; mydelim != NULL; i++)
+    {
+        line1[i] = mydelim;
+        mydelim = strtok(NULL,"\n");
+        len1++;
+    }
+
+    char* mydelim2 = strtok(text2,"\n");
+
+    for (int i = 0; mydelim2 != NULL; i++)
+    {
+        line2[i] = mydelim2;
+        mydelim2 = strtok(NULL,"\n");
+        len2++;
+    }
+
+    for(int i = 0 ; i < maxi(len1,len2) ; i++)
+    {
+        if(i >= mini(len1,len2) && strstr(line2[i-1],"\0") != NULL)
+        {
+            printf("-------#%d-#%d-------\n",i+1,maxi(len1,len2));
+            for(int j = i ; j < maxi(len1,len2) ; j++)
+            {
+                printf("%s\n",line1[j]);
+            }
+            return;
+        }
+        else if(i >= mini(len1,len2) && strstr(line1[i-1],"\0") != NULL)
+        {
+            printf("-------#%d-#%d-------\n",i+1,maxi(len1,len2));
+            for(int j = i ; j < maxi(len1,len2) ; j++)
+            {
+                printf("%s\n",line2[j]);
+            }
+            return;
+        }
+        else if(i < mini(len1,len2) && strcmp(line1[i],line2[i]) != 0)
+        {
+            printf("-------Line #%d-------\n",i+1);
+            printf("%s\n%s\n",line1[i],line2[i]);
         }
     }
 }
