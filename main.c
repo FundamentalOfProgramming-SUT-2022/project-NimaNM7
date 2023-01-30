@@ -1,6 +1,8 @@
 //Nima Moazzen
 //401106599
 
+//find options (not compound) without wildcards added
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -173,14 +175,14 @@ int main()
             continue;
         }
     
-    //Closing Pairs
-        if(strcmp(firstcommand,"auto-indent") == 0)
-        {
-            getchar();
-            invalid = 0;
-            closingpairs();
-            continue;
-        }
+    // //Closing Pairs
+    //     if(strcmp(firstcommand,"auto-indent") == 0)
+    //     {
+    //         getchar();
+    //         invalid = 0;
+    //         closingpairs();
+    //         continue;
+    //     }
 
     //Invalid Input
         else if(invalid)
