@@ -1,8 +1,7 @@
 //Nima Moazzen
 //401106599
 
-//Find is complete and debugged
-//next step : Replace
+//Find is complete and debugged - Replace without wildcard is added (wildcard ignored)
 //Tree and Auto indent are after that
 //Arman will be ignored
 
