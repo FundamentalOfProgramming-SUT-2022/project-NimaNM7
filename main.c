@@ -1427,11 +1427,32 @@ void replace()
     fclose(file);
     file = fopen(mydir[mylength-1],"w");
     
-    if(strcmp(mytype,"all") == 0)
+    if(strcmp(mytype,"all") == 0) // -all option
     {
-        
+        int cntr = 0 ,counter = 0 , index = 0;
+
+        while(text[cntr] != '\0')
+        {
+            printf("counter : %d\tcntr = %d\tans[0] = %d\n",counter,cntr,ans[0]);
+            if(cntr == ans[index])
+            {
+                printf("we are here now\n");
+                fprintf(file,str2);
+                index++;
+                cntr+=strlen(str1); 
+                continue;
+            }
+            if(text[cntr] <= 9 || text[cntr] == '\0')
+                break;
+            fputc(text[cntr],file);
+            printf("text[cntr] is %c\n",text[cntr]);
+            cntr++ , counter++;
+        }
+        fclose(file);
+        printf("Replacing was successful\n");
+        return;
     }
-    if(strcmp(mytype,"at") == 0)
+    if(strcmp(mytype,"at") == 0) // -at option
     {
         int gobro;
         scanf("%d",&gobro);
@@ -1449,7 +1470,7 @@ void replace()
         fclose(file);
         return;
     }
-    if(strcmp(mytype,"reg") == 0)
+    if(strcmp(mytype,"reg") == 0) //Normal Replace
     {
         int ind = ans[0];
         for(int i = 0 ; i < ind ; i++)
