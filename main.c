@@ -28,6 +28,8 @@ void addtostr(char*,int,char);
 int maxi(int,int);
 int mini(int,int);
 int filetostr(FILE*,char*,char*,char**);
+int findpos(char*,char*,char*);
+int findpos2(char*,char*,char*,int);
 
 void createfile();
 void cat();
