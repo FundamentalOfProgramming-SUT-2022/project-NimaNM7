@@ -1,7 +1,10 @@
 //Nima Moazzen
 //401106599
 
-//find options (not compound) without wildcards added
+//Find is complete and debugged
+//next step : Replace
+//Tree and Auto indent are after that
+//Arman will be ignored
 
 #include <stdio.h>
 #include <string.h>
@@ -213,9 +216,10 @@ void getdirectory(char** step2 , char* step1)
             step1[index] = x;
             index++;
         }
-        if(x == '\n')
+        if(x == 10)
         {
             flag = 0;
+            break;
         }
         if(withoutspace == 1 && x == ' ')
         {
@@ -1084,7 +1088,7 @@ void pastestr()
     back();
 }
 
-int findpos(char* text,char* word,char* type)
+int findpos(char* text,char* word,char* type) //for regular , count and byword (it returns the pos of first found string or number of found strings)
 {
     int flag;
     cntfind = 0;
@@ -1115,7 +1119,7 @@ int findpos(char* text,char* word,char* type)
     return -1;
 }
 
-void findpos2(char* text,char* word,char* type,int gobro)
+void findpos2(char* text,char* word,char* type,int gobro) //for at and all (it doesnt return anything and has one more argument (for finding the repeats))
 {
     int flag;
     cntfind = 0;
@@ -1142,9 +1146,50 @@ void findpos2(char* text,char* word,char* type,int gobro)
                 }
                 if(strcmp(type,"all") == 0)
                     printf("%d ",indexfind);
+
+                if(strcmp(type,"byword") == 0) //for combination of all and byword
+                {
+                    int cntby = 0;
+                    for(int i = 0 ; i < indexfind ; i++)
+                    {
+                        if(text[i] == ' ' || text[i] == '\n')
+                            cntby++;                        
+                    }
+                    printf("%d ",cntby);
+                }
+                if(strcmp(type,"bywordat") == 0)
+                {
+                    int cntby = 0;
+                    for(int i = 0 ; i < indexfind ; i++)
+                    {
+                        if(text[i] == ' ' || text[i] == '\n')
+                            cntby++;                        
+                    }
+                    if(cntfind == gobro)
+                    {
+                        printf("%d\n",cntby);
+                    }
+                }
             }
         }
     }
+    if(gobro > cntfind)
+    {
+        printf("Couldn't found your string %d times (%d found)\n",gobro,cntfind);
+        return;
+    }
+}
+
+int get2ops()
+{
+    char last = getchar();
+    if(last == ' ')
+    {
+        char last2 = getchar();
+        if(last2 == '-')
+            return 1;
+    }
+    return 0;
 }
 
 void find() 
@@ -1181,7 +1226,7 @@ void find()
     else
     {
         mystr[0] = first;
-        scanf("%s",mystr+1);
+        scanf("%[^ ]s",mystr+1);
 
         scanf("%s",thirdcommand);
         if(strcmp(thirdcommand,"--file") == 0) 
@@ -1190,6 +1235,19 @@ void find()
             getdirectory(mydir,dir);
         }
     }
+
+    for(int i = 0 ; i < strlen(mystr)-1 ; i++) //for handling "\*""
+    {
+        if(mystr[i] == '*' && mystr[i-1] == '\\')
+            delete(mystr,i-1);
+    }
+
+    if(mystr[strlen(mystr)-1] == '*') //for handling wildcards like "nima*"
+        mystr[strlen(mystr)-1] = '\0';
+    
+    if(mystr[0] == '*') //for handling wildcards like "*nima" (its not complete but better than nothing)
+        delete(mystr,0);
+
 
     if(gotodir(mydir) == 0) return;
     FILE* myfile = fopen(mydir[mylength-1],"r");
@@ -1208,13 +1266,32 @@ void find()
     }
     text[counter+1] = '\0';
 
-    char mytype[30],secondtype[20];
+    char last,mytype[30],secondtype[20];
     int gobro;
     scanf("%s",mytype);
 
     if(strcmp(mytype,"at") == 0)
     {
         scanf("%d",&gobro);
+        if(get2ops())
+        {
+            scanf("%s",secondtype);
+            if(strcmp(secondtype,"byword") == 0)
+            {
+                findpos2(text,mystr,"bywordat",gobro);
+                return;
+            }
+            if(strcmp(secondtype,"all") == 0)
+            {
+                printf("all and at cannot be combined\n");
+                return;
+            }
+            if(strcmp(secondtype,"count") == 0)
+            {
+                printf("count and at cannot be combined\n");
+                return;
+            }
+        }
         findpos2(text,mystr,"at",gobro);
         return;
     }
@@ -1225,12 +1302,43 @@ void find()
     }
     else if(strcmp(mytype,"all") == 0)
     {
+        if(get2ops())
+        {
+            scanf("%s",secondtype);
+            if(strcmp(secondtype,"byword") == 0)
+            {
+                findpos2(text,mystr,"byword",gobro);
+                printf("\n");
+                return;
+            }
+            if(strcmp(secondtype,"at") == 0)
+            {
+                printf("at and all cannot be combined\n");
+                return;
+            }
+        }
         findpos2(text,mystr,"all",gobro);
         printf("\n");
         return;
     }
     else if(strcmp(mytype,"byword") == 0)
     {
+        if(get2ops())
+        {
+            scanf("%s",secondtype);
+            if(strcmp(secondtype,"all") == 0)
+            {
+                findpos2(text,mystr,"byword",gobro);
+                printf("\n");
+                return;
+            }
+            if(strcmp(secondtype,"at") == 0)
+            {
+                scanf("%d",&gobro);
+                findpos2(text,mystr,"bywordat",gobro);
+                return;
+            }
+        }
         int num;
         int k = findpos(text,mystr,"reg");
         if(k == -1) 
