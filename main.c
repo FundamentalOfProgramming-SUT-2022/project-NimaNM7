@@ -1164,6 +1164,7 @@ void find()
     char mystr[1000] , thirdcommand[30] , text[10000];
     char c , dir[1000];
     char* mydir[10];
+    int wildcard = 0;
 
     getchar();
     getstr(mystr);
@@ -1184,9 +1185,11 @@ void find()
     if(mystr[strlen(mystr)-1] == '*') //for handling wildcards like "nima*"
         mystr[strlen(mystr)-1] = '\0';
     
-    if(mystr[0] == '*') //for handling wildcards like "*nima" (its not complete but better than nothing)
+    if(mystr[0] == '*') //for handling wildcards like "*nima" 
+    {
         delete(mystr,0);
-
+        wildcard = 1;
+    }
 
     if(gotodir(mydir) == 0) return;
     FILE* myfile = fopen(mydir[mylength-1],"r");
@@ -1335,6 +1338,19 @@ void find()
             }
         }
         int num = 0;
+
+        if(wildcard)
+        {
+            int in = 0 ;
+            for(in ; ans[in] != -1 ; in++);
+            for(int i = 0 ; i < ans[in-1] ; i++)
+            {
+                if(text[i] == ' ')
+                    num++;
+            }
+            printf("%d\n",num+1);
+            return;
+        }
         
         for(int i = 0 ; i < ans[0] ; i++)
         {
@@ -1342,9 +1358,17 @@ void find()
                 num++;
         }
         printf("%d\n",num+1);
+        return;
     }
     else if(strcmp(mytype,"reg") == 0) // Normal Situation
     {
+        if(wildcard) //if we have "*nima" we should find the last nima
+        {
+            int in = 0;
+            for(in; ans[in] != -1 ; in++);
+            printf("%d\n",ans[in-1]);
+            return;
+        }
         printf("%d\n",ans[0]);
         return;
     }
