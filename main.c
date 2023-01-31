@@ -29,7 +29,9 @@ int maxi(int,int);
 int mini(int,int);
 int filetostr(FILE*,char*,char*,char**);
 int findpos(char*,char*,char*);
-int findpos2(char*,char*,char*,int);
+void findpos2(char*,char*,char*,int);
+int* findpos3(char*,char*);
+void getstr(char*);
 
 void createfile();
 void cat();
@@ -40,6 +42,7 @@ void copystr();
 void cutstr();
 void pastestr();
 void find();
+void replace();
 void grep();
 void compare();
 void closingpairs();
@@ -158,6 +161,19 @@ int main()
             {
                 invalid = 0;
                 find();
+                continue;
+            }
+        }
+
+    //Replace
+        if(strcmp(firstcommand,"replace") == 0)
+        {
+            getchar();
+            scanf("%s",secondcommand);
+            if(strcmp(secondcommand,"--str1") == 0)
+            {
+                invalid = 0;
+                replace();
                 continue;
             }
         }
@@ -422,6 +438,7 @@ void delete(char* str,int index)
     }
 }
 
+
 void addtostr(char* str,int index,char c)
 {
     for(int i = strlen(str)+1 ; i > index ; i--)
@@ -484,6 +501,30 @@ int filetostr(FILE* file,char* filename, char* str1, char** str2)
     return len;
 }
 
+void getstr(char* mystr)
+{
+    char first = getchar();
+    if(first == '"')
+    {
+        int a = 0 ;
+        int flag = 1;
+        while(flag == 1)
+        {
+            scanf("%c",&mystr[a]);
+            if(mystr[a] == '-' && mystr[a-1] == ' ' && mystr[a-2] == '"')
+            {
+                mystr[a-2] = '\0';
+                flag = 0;
+            }
+            a++;
+        }
+    }
+    else
+    {
+        mystr[0] = first;
+        scanf("%[^ ]s",mystr+1);
+    }
+}
 
 void createfile()
 {
@@ -583,28 +624,14 @@ void insertfile()
     if(strcmp(thirdcommand , "-str") == 0)
     {
         getchar();
-        char first = getchar();
-        
-        if(first == '"')
-        {
-            int i = 0 ;
-            int flag = 1;
-            while(flag == 1)
-            {
-                scanf("%c",&mystr[i]);
-                if(mystr[i] == '-' && mystr[i-1] == ' ' && mystr[i-2] == '"')
-                {
-                    mystr[i-2] = '\0';
-                    flag = 0;
-                }
-                i++;
-            }
-        }
+
+        getstr(mystr);
+
         char fourthcommand[30];
 
         scanf("%s",fourthcommand);
 
-        if(strcmp(fourthcommand , "-pos") == 0)
+        if(strcmp(fourthcommand , "-pos") == 0 || strcmp(fourthcommand,"--pos") == 0)
         {
             scanf("%d:%d",&row,&column);
         }
@@ -1182,6 +1209,36 @@ void findpos2(char* text,char* word,char* type,int gobro) //for at and all (it d
     }
 }
 
+int* findpos3(char* text,char* word) //for Replace , it puts all answers in an array
+{
+    int* answers = (int*)calloc(1000,sizeof(int));
+    int flag, cnt = 0;
+    for(int i = 0 ; i < strlen(text) ; i++)
+    {
+        if(text[i] == word[0])
+        {
+            flag = 1;
+            for(int j = 0 ; j < strlen(word) ; j++)
+            {
+                if(text[i+j] != word[j])
+                {
+                    flag = 0;
+                    break;
+                }
+            }
+            if(flag == 1)
+            {
+                answers[cnt] = i;   
+                cnt++;
+            }
+        }
+    }
+    if(cnt == 0)
+        answers[0] = -1;
+
+    return answers;
+}
+
 int get2ops()
 {
     char last = getchar();
@@ -1196,46 +1253,18 @@ int get2ops()
 
 void find() 
 {
-    char mystr[10000] , thirdcommand[30] , text[10000];
+    char mystr[1000] , thirdcommand[30] , text[10000];
     char c , dir[1000];
-    int position = 0;
     char* mydir[10];
 
     getchar();
-    char first = getchar();
-       
-    if(first == '"')
-    {
-        int a = 0 ;
-        int flag = 1;
-        while(flag == 1)
-        {
-            scanf("%c",&mystr[a]);
-            if(mystr[a] == '-' && mystr[a-1] == ' ' && mystr[a-2] == '"')
-            {
-                mystr[a-2] = '\0';
-                flag = 0;
-            }
-            a++;
-        }
-        scanf("%s",thirdcommand);
-        if(strcmp(thirdcommand,"-file") == 0) 
-        {
-            getchar();
-            getdirectory(mydir,dir);
-        }
-    }
-    else
-    {
-        mystr[0] = first;
-        scanf("%[^ ]s",mystr+1);
+    getstr(mystr);
 
-        scanf("%s",thirdcommand);
-        if(strcmp(thirdcommand,"--file") == 0) 
-        {
-            getchar();
-            getdirectory(mydir,dir);
-        }
+    scanf("%s",thirdcommand);
+    if(strcmp(thirdcommand,"--file") == 0 || strcmp(thirdcommand,"-file") == 0)
+    {
+        getchar();
+        getdirectory(mydir,dir);
     }
 
     for(int i = 0 ; i < strlen(mystr)-1 ; i++) //for handling "\*""
@@ -1269,7 +1298,7 @@ void find()
     text[counter+1] = '\0';
 
     char last,mytype[30],secondtype[20];
-    int gobro;
+    int gobro = 0;
     scanf("%s",mytype);
 
     if(strcmp(mytype,"at") == 0)
@@ -1360,6 +1389,100 @@ void find()
         printf("%d\n",findpos(text,mystr,"reg"));
         return;
     }
+    back();
+    memset(secondtype, '\0', strlen(secondtype));
+    memset(mytype , '\0' , strlen(mytype));
+}
+
+void replace()
+{
+    char c,text[10000],str1[1000],str2[1000],dir[1000],thirdcommand[30],fourthcommand[30];
+    char* mydir[1000];
+    getchar();
+    getstr(str1);
+    scanf("%s",thirdcommand);
+    if(strcmp(thirdcommand,"--str2") == 0 || strcmp(thirdcommand,"-str2") == 0)
+    {
+        getchar();
+        getstr(str2);
+        scanf("%s",fourthcommand);
+    }
+    else return;
+    if(strcmp(fourthcommand,"--file") == 0 || strcmp(fourthcommand,"-file") == 0)
+    {
+        getchar();
+        getdirectory(mydir,dir);
+    }
+    else return;
+
+    // printf("just checking : str1 = %s , str2 = %s , thirdcommand = %s , fourthcommand = %s , mydir[0] = %s , filename = %s\n",str1,str2,thirdcommand,fourthcommand,mydir[0],mydir[mylength-1]);
+    if(gotodir(mydir) == 0) return;
+    FILE* file = fopen(mydir[mylength-1],"r");
+    if(file == NULL)
+    {
+        printf("There is no file named \"%s\" in this folder!\n",mydir[mylength-1]);
+        return;
+    }
+    int index = 0;
+    c = fgetc(file);
+    while(c != EOF)
+    {
+        text[index] = c;
+        index++;
+        c = fgetc(file);
+    }
+    text[index+1] = '\0';
+    char mytype[10];
+    scanf("%s",mytype);
+
+    int* ans = findpos3(text,str1); //position of answers in an array
+    if(ans[0] == -1) 
+    {
+        printf("Your string was not found\n");
+        return;
+    }
+    fclose(file);
+    file = fopen(mydir[mylength-1],"w");
+    
+    if(strcmp(mytype,"all") == 0)
+    {
+        
+    }
+    if(strcmp(mytype,"at") == 0)
+    {
+        int gobro;
+        scanf("%d",&gobro);
+        int ind = ans[gobro-1];
+        for(int i = 0 ; i < ind ; i++)
+        {
+            fputc(text[i],file);
+        }
+        fprintf(file,str2);
+        for(int i = ind + strlen(str1) ; text[i+1] != '\0' ; i++)
+        {
+            fputc(text[i],file);
+        }
+        printf("Replacing was succesfull\n");
+        fclose(file);
+        return;
+    }
+    if(strcmp(mytype,"reg") == 0)
+    {
+        int ind = ans[0];
+        for(int i = 0 ; i < ind ; i++)
+        {
+            fputc(text[i],file);
+        }
+        fprintf(file,str2);
+        for(int i = ind + strlen(str1) ; text[i+1] != '\0' ; i++)
+        {
+            fputc(text[i],file);
+        }
+        printf("Replacing was succesfull\n");
+        fclose(file);
+        return;
+    }
+    back();
 }
 
 void grep()
