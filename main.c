@@ -28,9 +28,7 @@ void addtostr(char*,int,char);
 int maxi(int,int);
 int mini(int,int);
 int filetostr(FILE*,char*,char*,char**);
-int findpos(char*,char*,char*);
-void findpos2(char*,char*,char*,int);
-int* findpos3(char*,char*);
+int* findpos(char*,char*);
 void getstr(char*);
 
 void createfile();
@@ -1117,101 +1115,11 @@ void pastestr()
     back();
 }
 
-int findpos(char* text,char* word,char* type) //for regular , count and byword (it returns the pos of first found string or number of found strings)
-{
-    int flag;
-    cntfind = 0;
-    for(indexfind = 0 ; indexfind < strlen(text) ; indexfind++)
-    {
-        if(text[indexfind] == word[0])
-        {
-            flag = 1;
-            for(int j = 0 ; j < strlen(word) ; j++)
-            {
-                if(text[indexfind+j] != word[j])
-                {
-                    flag = 0 ;
-                    break;
-                }
-            }
-            if(flag == 1)
-            {
-                cntfind++;
-                if(strcmp(type,"reg") == 0)
-                    return indexfind;
-            }
-        }
-    }
-    if(strcmp(type ,"count") == 0)
-        return cntfind;
-
-    return -1;
-}
-
-void findpos2(char* text,char* word,char* type,int gobro) //for at and all (it doesnt return anything and has one more argument (for finding the repeats))
-{
-    int flag;
-    cntfind = 0;
-    for(indexfind = 0 ; indexfind < strlen(text) ; indexfind++)
-    {
-        if(text[indexfind] == word[0])
-        {
-            flag = 1;
-            for(int j = 0 ; j < strlen(word) ; j++)
-            {
-                if(text[indexfind+j] != word[j])
-                {
-                    flag = 0 ;
-                    break;
-                }
-            }
-            if(flag == 1)
-            {
-                cntfind++;
-                if(strcmp(type,"at") == 0 && cntfind == gobro)
-                { 
-                    printf("%d\n",indexfind);
-                    return;
-                }
-                if(strcmp(type,"all") == 0)
-                    printf("%d ",indexfind);
-
-                if(strcmp(type,"byword") == 0) //for combination of all and byword
-                {
-                    int cntby = 0;
-                    for(int i = 0 ; i < indexfind ; i++)
-                    {
-                        if(text[i] == ' ' || text[i] == '\n')
-                            cntby++;                        
-                    }
-                    printf("%d ",cntby);
-                }
-                if(strcmp(type,"bywordat") == 0)
-                {
-                    int cntby = 0;
-                    for(int i = 0 ; i < indexfind ; i++)
-                    {
-                        if(text[i] == ' ' || text[i] == '\n')
-                            cntby++;                        
-                    }
-                    if(cntfind == gobro)
-                    {
-                        printf("%d\n",cntby);
-                    }
-                }
-            }
-        }
-    }
-    if(gobro > cntfind)
-    {
-        printf("Couldn't found your string %d times (%d found)\n",gobro,cntfind);
-        return;
-    }
-}
-
-int* findpos3(char* text,char* word) //for Replace , it puts all answers in an array
+int* findpos(char* text,char* word) //for Replace , it puts all answers in an array
 {
     int* answers = (int*)calloc(1000,sizeof(int));
+    for(int i = 0 ; i < 1000 ; i++)
+        answers[i] = -1;
     int flag, cnt = 0;
     for(int i = 0 ; i < strlen(text) ; i++)
     {
@@ -1301,92 +1209,143 @@ void find()
     int gobro = 0;
     scanf("%s",mytype);
 
-    if(strcmp(mytype,"at") == 0)
+    int* ans = findpos(text,mystr);
+    if(ans[0] == -1)
+    {
+        printf("%d\n",ans[0]);
+        return;
+    }
+
+    if(strcmp(mytype,"at") == 0)    // -at 
     {
         scanf("%d",&gobro);
+        if(ans[gobro-1] == -1)
+        {
+            printf("%d\n",ans[gobro-1]);
+            return;
+        }
         if(get2ops())
         {
             scanf("%s",secondtype);
-            if(strcmp(secondtype,"byword") == 0)
+            if(strcmp(secondtype,"byword") == 0) // -at -byword
             {
-                findpos2(text,mystr,"bywordat",gobro);
+                int num = 0;
+                for(int i = 0 ; i < ans[gobro-1] ; i++)
+                {
+                    if(text[i] == ' ')
+                        num++;
+                } 
+                printf("%d\n",num+1);
                 return;
             }
-            if(strcmp(secondtype,"all") == 0)
+            if(strcmp(secondtype,"all") == 0) // -at -all
             {
                 printf("all and at cannot be combined\n");
                 return;
             }
-            if(strcmp(secondtype,"count") == 0)
+            if(strcmp(secondtype,"count") == 0) // -at -count
             {
                 printf("count and at cannot be combined\n");
                 return;
             }
         }
-        findpos2(text,mystr,"at",gobro);
+        printf("%d\n",ans[gobro-1]);
         return;
     }
-    else if(strcmp(mytype,"count") == 0)
+    else if(strcmp(mytype,"count") == 0) // -count 
     {
-        printf("%d\n",findpos(text,mystr,"count"));
+        int cnt = 0;
+        for(int i = 0 ; ans[i] != -1 ; i++)
+            cnt++;
+
+        printf("%d\n",cnt);
         return;
     }
-    else if(strcmp(mytype,"all") == 0)
+    else if(strcmp(mytype,"all") == 0) // -all 
     {
         if(get2ops())
         {
             scanf("%s",secondtype);
-            if(strcmp(secondtype,"byword") == 0)
+            if(strcmp(secondtype,"byword") == 0) // -all -byword
             {
-                findpos2(text,mystr,"byword",gobro);
+                int num;
+                for(int i = 0 ; ans[i] != -1 ; i++)
+                {
+                    num = 0;
+                    for(int j = 0 ; j < ans[i] ; j++)
+                    {
+                        if(text[j] == ' ')
+                            num++;
+                    }
+                    printf("%d ",num+1);
+                }
                 printf("\n");
                 return;
             }
-            if(strcmp(secondtype,"at") == 0)
+            if(strcmp(secondtype,"at" ) == 0 || strcmp(secondtype,"count") == 0) // -all -at && -all -count
             {
-                printf("at and all cannot be combined\n");
+                printf("all and %s cannot be combined\n",secondtype);
                 return;
             }
         }
-        findpos2(text,mystr,"all",gobro);
+        for(int i = 0 ; ans[i] != -1 ; i++)
+        {
+            printf("%d ",ans[i]);
+        }
         printf("\n");
         return;
     }
-    else if(strcmp(mytype,"byword") == 0)
+    else if(strcmp(mytype,"byword") == 0) // -byword
     {
         if(get2ops())
         {
             scanf("%s",secondtype);
-            if(strcmp(secondtype,"all") == 0)
+            if(strcmp(secondtype,"all") == 0) // -byword -all
             {
-                findpos2(text,mystr,"byword",gobro);
+                int num;
+                for(int i = 0 ; ans[i] != -1 ; i++)
+                {
+                    num = 0;
+                    for(int j = 0 ; j < ans[i] ; j++)
+                    {
+                        if(text[j] == ' ')
+                            num++;
+                    }
+                    printf("%d ",num+1);
+                }
                 printf("\n");
                 return;
             }
-            if(strcmp(secondtype,"at") == 0)
+            if(strcmp(secondtype,"at") == 0) // -byword -at
             {
+                int num = 0;
                 scanf("%d",&gobro);
-                findpos2(text,mystr,"bywordat",gobro);
+                for(int i = 0 ; i < ans[gobro-1] ; i++)
+                {
+                    if(text[i] == ' ')
+                        num++;
+                }
+                printf("%d\n",num+1);
+                return;
+            }
+            if(strcmp(secondtype,"count") == 0) // -byword -count
+            {
+                printf("byword and count cannot be combined\n");
                 return;
             }
         }
-        int num;
-        int k = findpos(text,mystr,"reg");
-        if(k == -1) 
+        int num = 0;
+        
+        for(int i = 0 ; i < ans[0] ; i++)
         {
-            printf("%d\n",k);
-            return;
-        }
-        for(int i = 0 ; i < k ; i++)
-        {
-            if(text[i] == ' ' || text[i] == '\n')
+            if(text[i] == ' ')
                 num++;
         }
-        printf("%d\n",num);
+        printf("%d\n",num+1);
     }
-    else if(strcmp(mytype,"reg") == 0)
+    else if(strcmp(mytype,"reg") == 0) // Normal Situation
     {
-        printf("%d\n",findpos(text,mystr,"reg"));
+        printf("%d\n",ans[0]);
         return;
     }
     back();
@@ -1435,7 +1394,7 @@ void replace()
     char mytype[10];
     scanf("%s",mytype);
 
-    int* ans = findpos3(text,str1); //position of answers in an array
+    int* ans = findpos(text,str1); //position of answers in an array
     if(ans[0] == -1) 
     {
         printf("Your string was not found\n");
