@@ -1,7 +1,7 @@
 //Nima Moazzen
 //401106599
 
-//Undo is added
+//Undo is debuged
 //Next Step : Auto indent - Arman
 
 #include <stdio.h>
@@ -29,7 +29,7 @@ int filetostr(FILE*,char*,char*,char**);
 int* findpos(char*,char*);
 int get2ops();
 void getstr(char*);
-void mkbackup(FILE*,char*);
+void mkbackup(FILE*,char**);
 
 void createfile();
 void cat();
@@ -296,7 +296,6 @@ void back()
     {
         chdir("..");
     }
-    mylength = 0;
 }
 
 void copyfile(FILE* file1 , FILE* file2)
@@ -528,16 +527,21 @@ void getstr(char* mystr)
     }
 }
 
-void mkbackup(FILE* file,char* filename)
+void mkbackup(FILE* file,char** mydir)
 {
     FILE* back_file;
+    char back_filename[200] = { 0 };
+    for(int i = 1 ; i < mylength ; i++)
+    {
+        strcat(back_filename,"-");
+        strcat(back_filename,mydir[i]);
+    }
     back();
     if (chdir("backups") == 0)
     {
-        back_file = fopen(filename,"w");
+        back_file = fopen(back_filename,"w");
         copyfile(file,back_file);
     }
-    printf("im in the function and i say filename is %s\n",filename);
 }
 
 void createfile()
@@ -670,14 +674,13 @@ void insertfile()
         }
         else
         {
-            mkbackup(firstfile,filename); //for Undo
+            mkbackup(firstfile,mydir); //for Undo
 
             if(gotodir(mydir) == 0) return;
             printf("%s filename is\n",filename);
             firstfile = fopen(filename,"r");
             secondfile = fopen("zapas.txt","w");
-            printf("%c is first char of firstfile\n",fgetc(firstfile));
-    //writing the final text in another file
+            //writing the final text in another file
 
             gotopos3(firstfile,secondfile,row,column,c);
 
@@ -700,10 +703,8 @@ void insertfile()
             }
 
             c = fgetc(firstfile);
-            printf("%c is c\n",c);
             while(c != EOF)
             {   
-                printf("adding correct\n");
                 fputc(c,secondfile);
                 c = fgetc(firstfile);
             }
@@ -760,7 +761,7 @@ void removestr()
         return;
     }
 
-    mkbackup(firstfile,filename);
+    mkbackup(firstfile,mydir);
     if(gotodir(mydir) == 0) return;
     firstfile = fopen(filename,"r");
 
@@ -949,6 +950,7 @@ void cutstr()
     getdirectory(mydir,dir);
     getchar();
 
+    strcpy(filename,mydir[mylength-1]);
     FILE* firstfile;
     FILE* secondfile;
 
@@ -966,7 +968,7 @@ void cutstr()
         return;   
     }
 
-    mkbackup(firstfile,filename);
+    mkbackup(firstfile,mydir);
     if(gotodir(mydir) == 0) return;
     firstfile = fopen(filename,"r");
 
@@ -1101,7 +1103,7 @@ void pastestr()
 
         scanf("%d:%d",&row,&column);
         firstfile = fopen(filename,"r");
-        mkbackup(firstfile,filename);
+        mkbackup(firstfile,mydir);
         if(gotodir(mydir) == 0) return;
 
         firstfile = fopen(filename,"r");
@@ -1433,7 +1435,8 @@ void replace()
     strcpy(filename,mydir[mylength-1]);
     if(gotodir(mydir) == 0) return;
     FILE* file = fopen(filename,"r");
-    mkbackup(file,filename);
+    mkbackup(file,mydir);
+    for(int i = 0 ; i < mylength ; i++) printf("this is mydir = %s\n",mydir[i]);
     if(gotodir(mydir) == 0) return;
     file = fopen(filename,"r");
 
@@ -1479,7 +1482,6 @@ void replace()
             if(text[cntr] <= 9 || text[cntr] == '\0')
                 break;
             fputc(text[cntr],file);
-            printf("text[cntr] is %c\n",text[cntr]);
             cntr++ , counter++;
         }
         fclose(file);
@@ -1751,18 +1753,23 @@ void tree(int depth)
 void undo()
 {
     char* mydir[100];
-    char dir[1000] , filename[1000];
+    char dir[1000] , filename[1000] = { 0 };
     FILE* file1;
     FILE* file2;
     getchar();
     getdirectory(mydir,dir);
 
-    strcpy(filename,mydir[mylength-1]);
+    for(int i = 1 ; i < mylength ; i++)
+    {
+        strcat(filename,"-");
+        strcat(filename,mydir[i]);
+    }
+
     if(gotodir(mydir) == 0) return;
-    file1 = fopen(filename,"r");
+    file1 = fopen(mydir[mylength-1],"r");
     if(file1 == NULL)
     {
-        printf("There is no file named %s in this folder\n",filename);
+        printf("There is no file named %s in this folder\n",mydir[mylength-1]);
         return;
     }
     back();
@@ -1782,7 +1789,7 @@ void undo()
     file3 = fopen("zapas.txt","r");
     chdir("..");
     gotodir(mydir);
-    file1 = fopen(filename,"w");
+    file1 = fopen(mydir[mylength-1],"w");
     copyfile(file3,file1);
     printf("Undoing was succesfull\n");
 }
