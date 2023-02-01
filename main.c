@@ -1,9 +1,8 @@
 //Nima Moazzen
 //401106599
 
-//Find is complete and debugged - Replace without wildcard is added (wildcard ignored)
-//Tree and Auto indent are after that
-//Arman will be ignored
+//Tree added (for more than 2 depth)
+//Next Step : Closing Pairs and Undo
 
 #include <stdio.h>
 #include <string.h>
@@ -42,6 +41,8 @@ void find();
 void replace();
 void grep();
 void compare();
+void listfiles(char*,int);
+void tree(int);
 void closingpairs();
 
 
@@ -191,6 +192,15 @@ int main()
             invalid = 0;
             compare();
             continue;
+        }
+
+    //Tree
+        if(strcmp(firstcommand,"tree") == 0)
+        {
+            int depth;
+            scanf("%d",&depth);
+            tree(depth);
+            return;
         }
     
     // //Closing Pairs
@@ -1705,4 +1715,49 @@ void compare()
             printf("%s\n%s\n",line1[i],line2[i]);
         }
     }
+}
+
+void listfiles(char* dirname,int depth)
+{
+    DIR* mydir = opendir(dirname);
+    if(dirname == NULL)
+        return;
+    
+    struct dirent* item;
+    item = readdir(mydir);
+
+    while(item != NULL)
+    {
+        if(strcmp(item->d_name,".") != 0 && strcmp(item->d_name,"..") != 0)
+        {
+            int counter = 0;
+            char path[1000] = { 0 };
+            strcat(path , dirname);
+            strcat(path,"/");
+            strcat(path,item->d_name);
+            while(path[0] == '.' || path[0] == '/') delete(path,0);
+            for(int i = 0 ; i < strlen(path) ; i++)
+            {
+                if(path[i] == '/')
+                    counter++;
+            }
+            if(counter <= depth)
+            {
+                for(int i = 0 ; i < counter ; i++)
+                    printf("--");
+                printf(" ");
+                printf("%s\n",path);
+            }
+            listfiles(path,depth);
+        }
+        item = readdir(mydir);
+    }
+
+    closedir(mydir);
+}
+
+void tree(int depth)
+{
+    listfiles(".",depth);
+    return;
 }
