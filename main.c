@@ -1,7 +1,7 @@
 //Nima Moazzen
 //401106599
 
-//Tree added (for more than 2 depth)
+// Some changes and debugs
 //Next Step : Closing Pairs and Undo
 
 #include <stdio.h>
@@ -223,45 +223,23 @@ int main()
     }
 }
 
-void getdirectory(char** step2 , char* step1)
+void getdirectory(char** step2,char* step1)
 {
-    int flag = 1 , index = 0;
-    int withoutspace = 0;
-    
+    int ws;
     mylength = 0;
-    while (flag == 1)
+    char first = getchar();
+    if(first == '"') ws = 0;
+    else ws = 1;
+
+    if(ws == 1)
     {
-        char x;
-        scanf("%c",&x);
-        if(index == 0 && x != '"')
-            withoutspace = 1;
-
-        if(x != '"' && x != '\n' && x != '-')
-        {
-            step1[index] = x;
-            index++;
-        }
-        if(x == 10)
-        {
-            flag = 0;
-            break;
-        }
-        if(withoutspace == 1 && x == ' ')
-        {
-            step1[index] = '\0';
-            flag = 0;
-            getchar();
-        }
-        if(x == '-')
-        {
-            if (step1[index-1] == ' ')
-            {
-                step1[index-1] = '\0';
-                flag = 0;
-            }
-        }
+        scanf("%s",step1);
     }
-
+    else
+    {
+        scanf("%[^\"]s",step1);
+        getchar();
+    }
     char* mydelim = strtok(step1,"/");
 
     for (int i = 0; mydelim != NULL; i++)
@@ -333,7 +311,7 @@ void copytoclipboard(const char* word)
 int getcommands2(char* thirdcommand , char* fourthcommand , char* flag)
 {
     scanf("%s",thirdcommand);
-    if(strcmp(thirdcommand,"-pos") == 0)
+    if(strcmp(thirdcommand,"--pos") == 0)
     {
         scanf("%d:%d",&row,&column);
 
@@ -376,7 +354,7 @@ int gotopos1(FILE* file1 , int row , int column , char c)
         c = fgetc(file1);
         if(c == EOF)
         {
-            printf("Out of Limit");
+            printf("Out of Limit\n");
             return 0;
         }
         columngone++;
@@ -403,7 +381,7 @@ int gotopos2(FILE* file1, FILE* file2, int row , int column , char c)
         c = fgetc(file1);
         if(c == EOF)
         {
-            printf("Out of Limit");
+            printf("Out of Limit\n");
             return 0;
         }
         fputc(c,file2);
@@ -518,7 +496,7 @@ void getstr(char* mystr)
         while(flag == 1)
         {
             scanf("%c",&mystr[a]);
-            if(mystr[a] == '-' && mystr[a-1] == ' ' && mystr[a-2] == '"')
+            if((mystr[a] == '-' || mystr[a] == '/') && mystr[a-1] == ' ' && mystr[a-2] == '"')
             {
                 mystr[a-2] = '\0';
                 flag = 0;
@@ -626,9 +604,10 @@ void insertfile()
     char thirdcommand[30];
 
     getdirectory(mydir,dir);
+    getchar();
     scanf("%s",thirdcommand);
 
-    if(strcmp(thirdcommand , "-str") == 0)
+    if(strcmp(thirdcommand , "--str") == 0)
     {
         getchar();
 
@@ -722,6 +701,7 @@ void removestr()
     rowgone = 0 , columngone = 0;
 
     getdirectory(mydir,dir);
+    getchar();
 
     FILE* firstfile;
     FILE* secondfile;
@@ -831,6 +811,7 @@ void copystr()
     rowgone = 0 , columngone = 0;
 
     getdirectory(mydir,dir);
+    getchar();
 
     FILE* firstfile;
 
@@ -928,6 +909,7 @@ void cutstr()
     rowgone = 0 , columngone = 0;
 
     getdirectory(mydir,dir);
+    getchar();
 
     FILE* firstfile;
     FILE* secondfile;
@@ -1068,13 +1050,14 @@ void pastestr()
     rowgone = 0 , columngone = 0;
 
     getdirectory(mydir,dir);
+    getchar();
 
     FILE* firstfile;
     FILE* secondfile;
 
     scanf("%s",thirdcommand);
 
-    if(strcmp(thirdcommand , "-pos") == 0)
+    if(strcmp(thirdcommand , "--pos") == 0)
     {
         if(gotodir(mydir) == 0)
             return;
@@ -1092,10 +1075,6 @@ void pastestr()
         gotopos3(firstfile,secondfile,row,column,c);
 
         fprintf(secondfile,mytext);
-        // for(int i = 0 ; i < strlen(mytext) ; i++)
-        // {
-        //     fputc(mytext[i],secondfile);
-        // }
 
         while (c != EOF)
         {
@@ -1124,7 +1103,7 @@ void pastestr()
     back();
 }
 
-int* findpos(char* text,char* word) //for Replace , it puts all answers in an array
+int* findpos(char* text,char* word) //for Replace and Find , it puts all answers in an array
 {
     int* answers = (int*)calloc(1000,sizeof(int));
     for(int i = 0 ; i < 1000 ; i++)
@@ -1183,6 +1162,8 @@ void find()
     {
         getchar();
         getdirectory(mydir,dir);
+        getchar();
+        getchar();
     }
 
     for(int i = 0 ; i < strlen(mystr)-1 ; i++) //for handling "\*""
@@ -1404,6 +1385,8 @@ void replace()
     {
         getchar();
         getdirectory(mydir,dir);
+        getchar();
+        getchar();
     }
     else return;
 
@@ -1442,10 +1425,8 @@ void replace()
 
         while(text[cntr] != '\0')
         {
-            printf("counter : %d\tcntr = %d\tans[0] = %d\n",counter,cntr,ans[0]);
             if(cntr == ans[index])
             {
-                printf("we are here now\n");
                 fprintf(file,str2);
                 index++;
                 cntr+=strlen(str1); 
@@ -1471,7 +1452,7 @@ void replace()
             fputc(text[i],file);
         }
         fprintf(file,str2);
-        for(int i = ind + strlen(str1) ; text[i+1] != '\0' ; i++)
+        for(int i = ind + strlen(str1) ; text[i] != '\0' ; i++)
         {
             fputc(text[i],file);
         }
@@ -1487,7 +1468,7 @@ void replace()
             fputc(text[i],file);
         }
         fprintf(file,str2);
-        for(int i = ind + strlen(str1) ; text[i+1] != '\0' ; i++)
+        for(int i = ind + strlen(str1) ; text[i] != '\0' ; i++)
         {
             fputc(text[i],file);
         }
@@ -1509,33 +1490,22 @@ void grep()
     if(strcmp(secondcommand,"--str") == 0) //without options
     {
         getchar();
-        char first = getchar();
-        
-        if(first == '"')
-        {
-            int i = 0 ;
-            int flag = 1;
-            while(flag == 1)
-            {
-                scanf("%c",&mystr[i]);
-                if(mystr[i] == '/' && mystr[i-1] == ' ' && mystr[i-2] == '"')
-                {
-                    mystr[i-2] = '\0';
-                    flag = 0;
-                }
-                i++;
-            }
-        }
+        getstr(mystr);
+        getchar();
+        char fourthcommand[30];
+        scanf("%s",fourthcommand);
+        if(strcmp(fourthcommand,"--files") != 0 && strcmp(fourthcommand,"--file") != 0 && strcmp(fourthcommand,"files") != 0 && strcmp(fourthcommand,"file") != 0 )
+            return;
+        getchar();
 
         while (1)
         {
-            // printf("before checking the inputs : mydir[0] = %s , mydir[1] = %s , lines[1] = %s , mystr = %s , len = %d\n",mydir[0],mydir[1],lines[1],mystr,len);
+            char x = getchar();
+            if(x == '\n') break;
             getdirectory(mydir,dir);
             if(gotodir(mydir) == 0) return;
             strcpy(filename,mydir[mylength-1]);
             len = filetostr(file,filename,text,lines);
-
-            // printf("after checking the inputs : mydir[0] = %s , mydir[1] = %s , filename = %s , lines[1] = %s , mystr = %s , len = %d\n",mydir[0],mydir[1],filename,lines[1],mystr,len);
             if(len == -1) return;
             
             for(int i = 0 ; i < len ; i++)
@@ -1545,13 +1515,11 @@ void grep()
                     printf("%s : %s\n",filename,lines[i]);
                 }
             }
-            // filename[0] = '\0' , lines[0] = '\0' , filename[0] = '\0' , text[0] = '\0' , mydir[0] = '\0' , dir[0] = '\0';
             memset(mydir, '\0', sizeof(mydir));
             memset(lines, '\0', sizeof(lines));
             memset(filename, '\0', sizeof(filename));
             memset(dir, '\0', sizeof(dir));
             memset(text, '\0', sizeof(text));
-            // printf("haji feshar chie %d %d %d %d %d\n",strlen(filename),strlen(filename),strlen(text),strlen(mydir),strlen(dir));
         }
     }
     else if(strcmp(secondcommand,"-c") == 0) //option "c"
@@ -1562,33 +1530,22 @@ void grep()
         if(strcmp(thirdcommand,"--str") == 0)
         {
             getchar();
-            char first = getchar();
-            
-            if(first == '"')
-            {
-                int i = 0 ;
-                int flag = 1;
-                while(flag == 1)
-                {
-                    scanf("%c",&mystr[i]);
-                    if(mystr[i] == '/' && mystr[i-1] == ' ' && mystr[i-2] == '"')
-                    {
-                        mystr[i-2] = '\0';
-                        flag = 0;
-                    }
-                    i++;
-                }
-            }
+            getstr(mystr);
+            getchar();
+            char fourthcommand[30];
+            scanf("%s",fourthcommand);
+            if(strcmp(fourthcommand,"--files") != 0 && strcmp(fourthcommand,"--file") != 0 && strcmp(fourthcommand,"-files") != 0 && strcmp(fourthcommand,"-file") != 0 )
+                return;
+            getchar();
 
             while (1)
             {
-                // printf("before checking the inputs : mydir[0] = %s , mydir[1] = %s , lines[1] = %s , mystr = %s , len = %d\n",mydir[0],mydir[1],lines[1],mystr,len);
+                char x = getchar();
+                if(x == '\n') break;
                 getdirectory(mydir,dir);
                 if(gotodir(mydir) == 0) return;
                 strcpy(filename,mydir[mylength-1]);
                 len = filetostr(file,filename,text,lines);
-
-                // printf("after checking the inputs : mydir[0] = %s , mydir[1] = %s , filename = %s , lines[1] = %s , mystr = %s , len = %d\n",mydir[0],mydir[1],filename,lines[1],mystr,len);
                 if(len == -1) return;
                 
                 for(int i = 0 ; i < len ; i++)
@@ -1598,13 +1555,11 @@ void grep()
                         counter++;
                     }
                 }
-                // filename[0] = '\0' , lines[0] = '\0' , filename[0] = '\0' , text[0] = '\0' , mydir[0] = '\0' , dir[0] = '\0';
                 memset(mydir, '\0', sizeof(mydir));
                 memset(lines, '\0', sizeof(lines));
                 memset(filename, '\0', sizeof(filename));
                 memset(dir, '\0', sizeof(dir));
                 memset(text, '\0', sizeof(text));
-                // printf("haji feshar chie %d %d %d %d %d\n",strlen(filename),strlen(filename),strlen(text),strlen(mydir),strlen(dir));
                 printf("%d\n",counter);
             }
             
@@ -1618,33 +1573,22 @@ void grep()
         if(strcmp(thirdcommand,"--str") == 0)
         {
             getchar();
-            char first = getchar();
-            
-            if(first == '"')
-            {
-                int i = 0 ;
-                int flag = 1;
-                while(flag == 1)
-                {
-                    scanf("%c",&mystr[i]);
-                    if(mystr[i] == '/' && mystr[i-1] == ' ' && mystr[i-2] == '"')
-                    {
-                        mystr[i-2] = '\0';
-                        flag = 0;
-                    }
-                    i++;
-                }
-            }
+            getstr(mystr);
+            getchar();
+            char fourthcommand[30];
+            scanf("%s",fourthcommand);
+            if(strcmp(fourthcommand,"--files") != 0 && strcmp(fourthcommand,"--file") != 0 && strcmp(fourthcommand,"-files") != 0 && strcmp(fourthcommand,"-file") != 0 )
+                return;
+            getchar();
 
             while (1)
             {
-                // printf("before checking the inputs : mydir[0] = %s , mydir[1] = %s , lines[1] = %s , mystr = %s , len = %d\n",mydir[0],mydir[1],lines[1],mystr,len);
+                char x = getchar();
+                if(x == '\n') break;
                 getdirectory(mydir,dir);
                 if(gotodir(mydir) == 0) return;
                 strcpy(filename,mydir[mylength-1]);
                 len = filetostr(file,filename,text,lines);
-
-                // printf("after checking the inputs : mydir[0] = %s , mydir[1] = %s , filename = %s , lines[1] = %s , mystr = %s , len = %d\n",mydir[0],mydir[1],filename,lines[1],mystr,len);
                 if(len == -1) return;
                 
                 for(int i = 0 ; i < len ; i++)
@@ -1655,13 +1599,11 @@ void grep()
                         break;
                     }
                 }
-                // filename[0] = '\0' , lines[0] = '\0' , filename[0] = '\0' , text[0] = '\0' , mydir[0] = '\0' , dir[0] = '\0';
                 memset(mydir, '\0', sizeof(mydir));
                 memset(lines, '\0', sizeof(lines));
                 memset(filename, '\0', sizeof(filename));
                 memset(dir, '\0', sizeof(dir));
                 memset(text, '\0', sizeof(text));
-                // printf("haji feshar chie %d %d %d %d %d\n",strlen(filename),strlen(filename),strlen(text),strlen(mydir),strlen(dir));
             }
             
         }
