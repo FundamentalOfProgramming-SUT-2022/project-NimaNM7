@@ -1,8 +1,7 @@
 //Nima Moazzen
-//401106599
+//401106599 
 
-//Undo is debuged
-//Next Step : Auto indent - Arman
+// Auto indent is added . it may have bugs . phase 1 is almost over
 
 #include <stdio.h>
 #include <string.h>
@@ -30,6 +29,7 @@ int* findpos(char*,char*);
 int get2ops();
 void getstr(char*);
 void mkbackup(FILE*,char**);
+int indexof(char*,char);
 
 void createfile();
 void cat();
@@ -45,6 +45,7 @@ void grep();
 void compare();
 void listfiles(char*,int);
 void tree(int);
+void autoindent(char*);
 void closingpairs();
 void undo();
 
@@ -191,7 +192,6 @@ int main()
     //Compare    
         if(strcmp(firstcommand,"compare") == 0)
         {
-            getchar();
             invalid = 0;
             compare();
             continue;
@@ -220,14 +220,14 @@ int main()
             }
         }
     
-    // //Closing Pairs
-    //     if(strcmp(firstcommand,"auto-indent") == 0)
-    //     {
-    //         getchar();
-    //         invalid = 0;
-    //         closingpairs();
-    //         continue;
-    //     }
+    //Closing Pairs
+        if(strcmp(firstcommand,"auto-indent") == 0)
+        {
+            getchar();
+            invalid = 0;
+            closingpairs();
+            continue;
+        }
 
     //Invalid Input
         else if(invalid)
@@ -253,10 +253,11 @@ void getdirectory(char** step2,char* step1)
         scanf("%s",step1);
     }
     else
-    {
+    {   
         scanf("%[^\"]s",step1);
         getchar();
     }
+
     char* mydelim = strtok(step1,"/");
 
     for (int i = 0; mydelim != NULL; i++)
@@ -498,6 +499,7 @@ int filetostr(FILE* file,char* filename, char* str1, char** str2)
         mydelim = strtok(NULL,"\n");
         len++;
     }
+    str2[len] = '\0';
     fclose(file);
     return len;
 }
@@ -542,6 +544,16 @@ void mkbackup(FILE* file,char** mydir)
         back_file = fopen(back_filename,"w");
         copyfile(file,back_file);
     }
+}
+
+int indexof(char* str,char c)
+{
+    for(int i = 0 ; i < strlen(str) ; i++)
+    {
+        if(str[i] == c)
+            return i;
+    }
+    return -1;
 }
 
 void createfile()
@@ -1666,13 +1678,14 @@ void compare()
     FILE* file1;
     FILE* file2;
     int len1 , len2;
-
+    printf("%d\n",getchar());
     getdirectory(mydir1,dir1);
 
     if(gotodir(mydir1) == 0) return;
     
     len1 = filetostr(file1,mydir1[mylength-1],text1,line1);
-
+    back();
+    getchar();
     getdirectory(mydir2,dir2);
     if(gotodir(mydir2) == 0) return;
     len2 = filetostr(file2,mydir2[mylength-1],text2,line2);
@@ -1792,4 +1805,106 @@ void undo()
     file1 = fopen(mydir[mylength-1],"w");
     copyfile(file3,file1);
     printf("Undoing was succesfull\n");
+}
+
+void autoindent(char* line)
+{
+    //first we change our line to a specified structure (delete spaces around acolads)
+    if(indexof(line,'{') == -1 || indexof(line,'}') == -1) return;
+    for(int i = 0 ; i < strlen(line) ; i++)
+    {
+        if(line[i] == '{' || line[i] == '}')
+        {
+            int cnt = 0;
+            for(int j = i ; line[j-1] == ' ' ; j--)
+            {
+                delete(line,j-1);
+                cnt++;
+            }
+            for(int j = i - cnt ; line[j+1] == ' ' ; j++)
+            {
+                delete(line,j+1);
+            }
+        }
+    } //done
+    
+    //in this level we handle lines (\n)
+    for(int i = 0 ; i < strlen(line) ; i++)
+    {
+        if(line[i] == '{')
+        {
+            if(i > 0 && line[i-1] != '\n' && line[i-1] != '{' && line[i-1] != '}')
+            {
+                addtostr(line,i,' ');
+                i++;
+            }
+            addtostr(line,i+1,'\n');
+            i++;
+        }
+        if(line[i] == '}')
+        {
+            if(line[i-1] != '{')
+            {
+                addtostr(line,i,'\n');
+                i++;
+            }
+            if(line[i+1] != '\n' && line[i+1] != '\0' && line[i+1] != '}')
+            {
+                addtostr(line,i+1,'\n');
+                i++;
+            }
+        }
+    } //done
+
+    //in this level we handle tabs (\t)
+    int counter = 0;
+    for(int i = 0 ; i < strlen(line) ; i++)
+    {
+        if(line[i] == '{') counter++;
+        if(line[i+2] == '}') counter--;
+        if(line[i] == '\n')
+        {
+            for(int j = 0 ; j < 4 * counter ; j++)
+            {
+                addtostr(line,i+1,' ');
+                i++;
+            }
+        }
+        
+    }
+}
+
+void closingpairs()
+{
+    int nol;
+    char dir[1000] , text[10000] , filename[100] , k[100];
+    char* mydir[100];
+    char* lines[400];
+    FILE* file;
+
+    getdirectory(mydir,dir);
+    strcpy(filename,mydir[mylength-1]);
+    
+    if(gotodir(mydir) == 0) return;
+    nol = filetostr(file,filename,text,lines);
+    if(nol == -1) return;
+    file = fopen(filename,"r");
+    mkbackup(file,mydir);
+    gotodir(mydir);
+    file = fopen(filename,"w");
+    for(int i = 0 ; i < nol ; i++)
+    {
+        strcpy(k,lines[i]);
+        autoindent(k);
+        fprintf(file,k);
+        if(i<nol-1)fprintf(file,"\n");
+    }
+
+    for(int i = 0 ; i < strlen(lines[nol-1]); i++)
+    {
+        if(lines[nol-1][i] < 32) lines[nol-1][i] = '\0';
+    }
+    fclose(file);
+
+    printf("auto indent is done\n");
 }
