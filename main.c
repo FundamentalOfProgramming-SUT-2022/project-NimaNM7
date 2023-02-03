@@ -1,7 +1,7 @@
 //Nima Moazzen
 //401106599 
 
-//Arman (just tree,cat and insert are added)
+//a part of Arman
 
 #include <stdio.h>
 #include <string.h>
@@ -1696,7 +1696,6 @@ void compare()
     FILE* file1;
     FILE* file2;
     int len1 , len2;
-    printf("%d\n",getchar());
     getdirectory(mydir1,dir1);
 
     if(gotodir(mydir1) == 0) return;
@@ -1730,8 +1729,51 @@ void compare()
         }
         else if(i < mini(len1,len2) && strcmp(line1[i],line2[i]) != 0)
         {
+            int len = 0 , len2 = 0;
             printf("-------Line #%d-------\n",i+1);
-            printf("%s\n%s\n",line1[i],line2[i]);
+            // printf("%s\n%s\n",line1[i],line2[i]);
+            char* words1[100];
+            char* words2[100];
+            char* mydelim = strtok(line1[i]," ");
+            for (int j= 0; mydelim != NULL; j++)
+            {
+                words1[j] = mydelim;
+                mydelim = strtok(NULL," ");
+                len++;
+            }
+            char* mydelim2 = strtok(line2[i]," ");
+            for (int j = 0; mydelim2 != NULL; j++)
+            {
+                words2[j] = mydelim2;
+                mydelim2 = strtok(NULL," ");
+                len2++;
+            }
+            int not_equal = 0 , index;
+            for(int j = 0 ; j < len && j < len2 ; j++)
+            {
+                if(strcmp(words1[j],words2[j]) != 0) {
+                    not_equal++;
+                    index = j;
+                }
+            }
+            if(not_equal == 1)
+            {
+                for(int j = 0 ; j < index ; j++) printf("%s ",words1[j]);
+                printf(">>"); printf("%s",words1[index]); printf("<< ");
+                for(int j = index + 1 ; j < len ; j++) printf("%s ",words1[j]);
+                printf("\n");
+                for(int j = 0 ; j < index ; j++) printf("%s ",words2[j]);
+                printf(">>"); printf("%s",words2[index]); printf("<< ");
+                for(int j = index + 1 ; j < len2 ; j++) printf("%s ",words2[j]);
+                printf("\n");
+            }
+            else
+            {
+                for(int j = 0 ; j < len ; j++) printf("%s ",words1[j]);
+                printf("\n");
+                for(int j = 0 ; j < len2 ; j++) printf("%s ",words2[j]);
+                printf("\n");
+            }
         }
     }
 }
