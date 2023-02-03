@@ -1,7 +1,7 @@
 //Nima Moazzen
 //401106599 
 
-//just arman is left
+//Arman (just tree,cat and insert are added)
 
 #include <stdio.h>
 #include <string.h>
@@ -9,6 +9,7 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <windows.h>
+#include <stdbool.h> 
 
 int mylength , row , column , size , rowgone , columngone , indexfind , cntfind;
 
@@ -30,6 +31,7 @@ int get2ops();
 void getstr(char*);
 void mkbackup(FILE*,char**);
 int indexof(char*,char);
+void writetofile(char**,char*,int,int);
 
 void createfile();
 void cat();
@@ -43,11 +45,12 @@ void find();
 void replace();
 void grep();
 void compare();
-void listfiles(char*,int);
+void listfiles(char*,char*,int);
 void tree(int);
 void autoindent(char*);
 void closingpairs();
 void undo();
+void arman(char*);
 
 
 int main()
@@ -556,6 +559,74 @@ int indexof(char* str,char c)
     return -1;
 }
 
+void writetofile(char** mydir,char* mystr,int row,int column)
+{
+    char filename[200];
+    FILE* firstfile;
+    FILE* secondfile;
+    char c;
+    strcpy(filename,mydir[mylength-1]);
+    if(gotodir(mydir) == 0)
+        return;
+
+    firstfile = fopen(filename,"r");
+
+    if(firstfile == NULL)
+    {
+        printf("%s doesn't exist in this folder!\n",filename);
+        return;
+    }
+    else
+    {
+        mkbackup(firstfile,mydir); //for Undo
+
+        if(gotodir(mydir) == 0) return;
+        firstfile = fopen(filename,"r");
+        secondfile = fopen("zapas.txt","w");
+        //writing the final text in another file
+
+        gotopos3(firstfile,secondfile,row,column,c);
+
+        for(int i = 0 ; mystr[i] != '\0' ; i++)
+        {
+            if(mystr[i] == '\\' && mystr[i+1] == '\\' && mystr[i+2] == 'n')
+            {
+                fprintf(secondfile,"\\n");
+                i+=2;
+            }
+            else if (mystr[i] == '\\' && mystr[i+1] == 'n')
+            {
+                fprintf(secondfile,"\n");
+                i++;
+            }
+            else
+            {
+                fputc(mystr[i],secondfile);
+            }
+        }
+
+        c = fgetc(firstfile);
+        while(c != EOF)
+        {   
+            fputc(c,secondfile);
+            c = fgetc(firstfile);
+        }
+
+        fclose(firstfile);
+        fclose(secondfile);
+    //copying our second file in the first file and deleting it
+        
+        firstfile = fopen(filename,"w");
+        secondfile = fopen("zapas.txt","r");
+        copyfile(secondfile,firstfile);
+
+        if(remove("zapas.txt") == 0)
+        {
+            printf("your text inserted succesfully\n");
+        }
+    }
+}
+
 void createfile()
 {
     getchar();
@@ -604,11 +675,19 @@ void createfile()
 void cat()
 {
     getchar();
-    char dir[100];
+    char dir[100] , catstr[10000] , c;
     char* mydir[10];
-    char c;
+    int cnt = 0;
+    bool is_arman;
 
     getdirectory(mydir,dir);
+
+    char last = getchar();
+    if(last == ' ')
+    {
+        if((getchar() == '=') && getchar() == 'D') is_arman = true;
+    }
+    else is_arman = false;
 
     if(gotodir(mydir) == 0)
         return;
@@ -619,21 +698,22 @@ void cat()
     if(file == NULL)
     {
         printf("There is no file with this name");
+        return;
     }
 
     c = fgetc(file);
-
     while(c != EOF)
     {
-        printf("%c",c);
+        if(!is_arman)printf("%c",c);
+        catstr[cnt] = c;
+        cnt++;
         c = fgetc(file);
     }
+    if(is_arman) arman(catstr);
 
     fclose(file);
-
     back();
-
-    printf("\n");
+    if(!is_arman)printf("\n");
 }
 
 void insertfile()
@@ -643,8 +723,6 @@ void insertfile()
     char c;
     char* mydir[10];
     rowgone = 0 , columngone = 0;
-    FILE* firstfile;
-    FILE* secondfile;
     char thirdcommand[30];
 
     getdirectory(mydir,dir);
@@ -673,66 +751,7 @@ void insertfile()
             printf("invalid command\n");
             return;   
         }
-
-        if(gotodir(mydir) == 0)
-            return;
-
-        firstfile = fopen(filename,"r");
-
-        if(firstfile == NULL)
-        {
-            printf("%s doesn't exist in this folder!\n",filename);
-            return;
-        }
-        else
-        {
-            mkbackup(firstfile,mydir); //for Undo
-
-            if(gotodir(mydir) == 0) return;
-            firstfile = fopen(filename,"r");
-            secondfile = fopen("zapas.txt","w");
-            //writing the final text in another file
-
-            gotopos3(firstfile,secondfile,row,column,c);
-
-            for(int i = 0 ; mystr[i] != '\0' ; i++)
-            {
-                if(mystr[i] == '\\' && mystr[i+1] == '\\' && mystr[i+2] == 'n')
-                {
-                    fprintf(secondfile,"\\n");
-                    i+=2;
-                }
-                else if (mystr[i] == '\\' && mystr[i+1] == 'n')
-                {
-                    fprintf(secondfile,"\n");
-                    i++;
-                }
-                else
-                {
-                    fputc(mystr[i],secondfile);
-                }
-            }
-
-            c = fgetc(firstfile);
-            while(c != EOF)
-            {   
-                fputc(c,secondfile);
-                c = fgetc(firstfile);
-            }
-
-            fclose(firstfile);
-            fclose(secondfile);
-    //copying our second file in the first file and deleting it
-            
-            firstfile = fopen(filename,"w");
-            secondfile = fopen("zapas.txt","r");
-            copyfile(secondfile,firstfile);
-
-            if(remove("zapas.txt") == 0)
-            {
-                printf("your text inserted succesfully\n");
-            }
-        }
+        writetofile(mydir,mystr,row,column);
     }
 
     else
@@ -1717,11 +1736,13 @@ void compare()
     }
 }
 
-void listfiles(char* dirname,int depth)
+void listfiles(char* dirname,char* ans,int depth)
 {
+    if (depth == -1) depth = 100;
+    
     DIR* mydir = opendir(dirname);
     if(dirname == NULL)
-        return;
+        return NULL;
     
     struct dirent* item;
     item = readdir(mydir);
@@ -1744,21 +1765,33 @@ void listfiles(char* dirname,int depth)
             if(counter <= depth)
             {
                 for(int i = 0 ; i < counter ; i++)
-                    printf("--");
-                printf(" ");
-                printf("%s\n",path);
+                    strcat(ans,"--");
+                strcat(ans," ");
+                strcat(ans,path);
+                strcat(ans,"\n");
             }
-            listfiles(path,depth);
+            listfiles(path,ans,depth);
         }
         item = readdir(mydir);
     }
-
     closedir(mydir);
 }
 
 void tree(int depth)
-{
-    listfiles(".",depth);
+{   
+    char ans[10000] = { 0 };
+    bool is_arman = false;
+    listfiles(".",ans,depth);
+    char last = getchar();
+    if(last == ' ')
+    {
+        if((getchar() == '=') && getchar() == 'D') is_arman = true;
+    }
+    else {}
+    
+
+    if(is_arman) arman(ans);
+    if(!is_arman) printf("%s",ans);
     return;
 }
 
@@ -1907,4 +1940,28 @@ void closingpairs()
     fclose(file);
 
     printf("auto indent is done\n");
+}
+
+void arman(char* string)
+{
+    char* mydir[100];
+    char command[100] , dir[1000];
+    getchar();
+    scanf("%s",command);
+    if(strcmp(command,"insertstr") == 0) //for insert (part2)
+    {
+        getchar();
+        char command2[100];
+        scanf("%s",command2);
+        if(strcmp(command2,"--file") != 0) return;
+        getchar();
+        getdirectory(mydir,dir);
+        getchar();
+        char command3[100];
+        scanf("%s",command3);
+        if(strcmp(command3,"--pos") != 0) return;
+        int x , y;
+        scanf("%d:%d",&x,&y);
+        writetofile(mydir,string,x,y);
+    }
 }
