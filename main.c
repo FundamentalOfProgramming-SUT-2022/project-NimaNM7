@@ -1,7 +1,7 @@
 //Nima Moazzen
 //401106599 
 
-// Auto indent is added . it may have bugs . phase 1 is almost over
+//just arman is left
 
 #include <stdio.h>
 #include <string.h>
@@ -689,7 +689,6 @@ void insertfile()
             mkbackup(firstfile,mydir); //for Undo
 
             if(gotodir(mydir) == 0) return;
-            printf("%s filename is\n",filename);
             firstfile = fopen(filename,"r");
             secondfile = fopen("zapas.txt","w");
             //writing the final text in another file
@@ -1869,15 +1868,14 @@ void autoindent(char* line)
                 addtostr(line,i+1,' ');
                 i++;
             }
-        }
-        
+        } 
     }
 }
 
 void closingpairs()
 {
     int nol;
-    char dir[1000] , text[10000] , filename[100] , k[100];
+    char dir[1000] , text[10000] , filename[100] , k[1000];
     char* mydir[100];
     char* lines[400];
     FILE* file;
@@ -1898,11 +1896,13 @@ void closingpairs()
         autoindent(k);
         fprintf(file,k);
         if(i<nol-1)fprintf(file,"\n");
+        memset(k,'\0',strlen(k));
     }
 
     for(int i = 0 ; i < strlen(lines[nol-1]); i++)
     {
-        if(lines[nol-1][i] < 32) lines[nol-1][i] = '\0';
+        if(lines[nol-1][i] < 32)
+            lines[nol-1][i] = '\0';
     }
     fclose(file);
 
