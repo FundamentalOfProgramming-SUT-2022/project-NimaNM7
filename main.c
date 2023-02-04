@@ -744,6 +744,11 @@ void insertfile()
         if(strcmp(fourthcommand , "-pos") == 0 || strcmp(fourthcommand,"--pos") == 0)
         {
             scanf("%d:%d",&row,&column);
+            if(row < 1 || column < 0)
+            {
+                printf("Out of Limit\n");
+                return;
+            }
         }
 
         else
@@ -914,7 +919,7 @@ void copystr()
                 mystr[i] = c;
         }
         fclose(firstfile);
-
+        mystr[size] = '\0';
         copytoclipboard(mystr);
         printf("Copying is done!\n");
         return;
@@ -961,7 +966,7 @@ void copystr()
         }
 
         fclose(firstfile);
-
+        mystr[size] = '\0';
         copytoclipboard(mystr);
         printf("Copying is done\n");
         return;
@@ -1021,6 +1026,7 @@ void cutstr()
                 mystr[i] = c;
             }
         }
+        mystr[size] = '\0';
 
         while (c != EOF)
         {
@@ -1092,6 +1098,7 @@ void cutstr()
             fputc(c,secondfile);
         }
 
+        mystr[size] = '\0';
         copytoclipboard(mystr);
 
         fclose(firstfile);
@@ -1698,9 +1705,9 @@ void grep()
                 memset(filename, '\0', sizeof(filename));
                 memset(dir, '\0', sizeof(dir));
                 memset(text, '\0', sizeof(text));
-                printf("%d\n",counter);
+                
             }
-            
+            printf("%d\n",counter);
         }
     }
     else if(strcmp(secondcommand,"-l") == 0) //option "l"
