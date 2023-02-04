@@ -1,7 +1,7 @@
 //Nima Moazzen
 //401106599 
 
-// Phase1 is almost over 
+// Phase1 is over 
 
 #include <stdio.h>
 #include <string.h>
