@@ -1,7 +1,7 @@
 //Nima Moazzen
 //401106599 
-
-// Phase1 is over 
+// Project Name : Vim (Phase 1)
+// Sharif University of Technology
 
 #include <stdio.h>
 #include <string.h>
