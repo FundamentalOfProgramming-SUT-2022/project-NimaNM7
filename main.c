@@ -1,7 +1,7 @@
 //Nima Moazzen
 //401106599 
 
-//a part of Arman
+// Phase1 is almost over 
 
 #include <stdio.h>
 #include <string.h>
@@ -1238,7 +1238,7 @@ void find()
         getchar();
     }
 
-    for(int i = 0 ; i < strlen(mystr)-1 ; i++) //for handling "\*""
+    for(int i = 1 ; i < strlen(mystr)-1 ; i++) //for handling "\*""
     {
         if(mystr[i] == '*' && mystr[i-1] == '\\')
             delete(mystr,i-1);
@@ -1434,6 +1434,7 @@ void find()
         printf("%d\n",ans[0]);
         return;
     }
+
     back();
     memset(secondtype, '\0', strlen(secondtype));
     memset(mytype , '\0' , strlen(mytype));
@@ -1443,8 +1444,25 @@ void replace()
 {
     char c,text[10000],str1[1000],str2[1000],dir[1000],thirdcommand[30],fourthcommand[30],filename[100];
     char* mydir[1000];
+    bool wildcardf = false;
+    bool wildcardb = false;
     getchar();
     getstr(str1);
+    for(int i = 1 ; i < strlen(str1)-1 ; i++) //for handling "\*""
+    {
+        if(str1[i] == '*' && str1[i-1] == '\\')
+            delete(str1,i-1);
+    }
+    if(str1[strlen(str1)-1] == '*') //handling wildcard ("nima*")
+    {
+        wildcardf = true;
+        str1[strlen(str1)-1] = '\0';
+    }
+    else if(str1[0] == '*')
+    {
+        wildcardb = true;
+        delete(str1,0);
+    }
     scanf("%s",thirdcommand);
     if(strcmp(thirdcommand,"--str2") == 0 || strcmp(thirdcommand,"-str2") == 0)
     {
@@ -1465,8 +1483,7 @@ void replace()
     strcpy(filename,mydir[mylength-1]);
     if(gotodir(mydir) == 0) return;
     FILE* file = fopen(filename,"r");
-    mkbackup(file,mydir);
-    for(int i = 0 ; i < mylength ; i++) printf("this is mydir = %s\n",mydir[i]);
+    mkbackup(file,mydir);  // for undoing
     if(gotodir(mydir) == 0) return;
     file = fopen(filename,"r");
 
@@ -1475,7 +1492,7 @@ void replace()
         printf("There is no file named \"%s\" in this folder!\n",filename);
         return;
     }
-    int index = 0;
+    int index = 0; // for getting the text from the file
     c = fgetc(file);
     while(c != EOF)
     {
@@ -1494,19 +1511,24 @@ void replace()
         return;
     }
     fclose(file);
-    file = fopen(filename,"w");
     
     if(strcmp(mytype,"all") == 0) // -all option
     {
-        int cntr = 0 ,counter = 0 , index = 0;
+        int cntr = 0 ,counter = 0 , wildcountb = 0 , wildcountf = 0 ,index = 0;
+        if(ans[0] == -1) 
+        {
+            printf("your string wasn't found\n");
+            return;
+        }
 
+        file = fopen(filename,"w");
         while(text[cntr] != '\0')
         {
             if(cntr == ans[index])
             {
                 fprintf(file,str2);
                 index++;
-                cntr+=strlen(str1); 
+                cntr+= strlen(str1); 
                 continue;
             }
             if(text[cntr] <= 9 || text[cntr] == '\0')
@@ -1516,13 +1538,32 @@ void replace()
         }
         fclose(file);
         printf("Replacing was successful\n");
+
         return;
     }
     if(strcmp(mytype,"at") == 0) // -at option
     {
-        int gobro;
+        int gobro , wildcountf = 0 , wildcountb = 0;
         scanf("%d",&gobro);
         int ind = ans[gobro-1];
+        if(ind == -1) 
+        {
+            printf("Out of Limit\n");
+            return;
+        }
+        file = fopen(filename,"w");
+        //before appending for wildcards
+        if(wildcardf)
+        {
+            for(int i = ind ; text[i] != ' ' ; i++) wildcountf ++;
+            wildcountf-=strlen(str1);
+        }
+        if(wildcardb)
+        { 
+            for(int i = ind-1 ; text[i] != ' ' ; i--) wildcountb ++;
+        }
+
+        //appending in file
         for(int i = 0 ; i < ind ; i++)
         {
             fputc(text[i],file);
@@ -1534,22 +1575,43 @@ void replace()
         }
         printf("Replacing was succesfull\n");
         fclose(file);
+        //done
         return;
     }
     if(strcmp(mytype,"reg") == 0) //Normal Replace
     {
-        int ind = ans[0];
-        for(int i = 0 ; i < ind ; i++)
+        int wildcountf = 0 , wildcountb = 0 , ind = ans[0];
+        if(ind == -1)
+        {
+            printf("your string wasn't found\n");
+            return;
+        }
+        file = fopen(filename,"w");
+        //before appending for wildcards
+        if(wildcardf)
+        {
+            for(int i = ind ; text[i] != ' ' ; i++) wildcountf ++;
+            wildcountf-=strlen(str1);
+        }
+        if(wildcardb)
+        {   
+            for(int i = 0 ; ans[i] != -1 ; i++) ind = ans[i];
+            for(int i = ind-1 ; text[i] != ' ' ; i--) wildcountb ++;
+        }
+
+        //appending in file
+        for(int i = 0 ; i < ind-wildcountb ; i++)
         {
             fputc(text[i],file);
         }
         fprintf(file,str2);
-        for(int i = ind + strlen(str1) ; text[i] != '\0' ; i++)
+        for(int i = ind + strlen(str1) + wildcountf ; text[i] != '\0' ; i++)
         {
             fputc(text[i],file);
         }
         printf("Replacing was succesfull\n");
         fclose(file);
+        //done
         return;
     }
     back();
@@ -1784,7 +1846,7 @@ void listfiles(char* dirname,char* ans,int depth)
     
     DIR* mydir = opendir(dirname);
     if(dirname == NULL)
-        return NULL;
+        return;
     
     struct dirent* item;
     item = readdir(mydir);
